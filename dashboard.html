@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Culture Scoring Dashboard — Anteraja</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --mg:#E8197D;--mg-l:#FBEAF0;--mg-d:#C0146A;
+  --green:#3B6D11;--green-l:#EAF3DE;
+  --blue:#185FA5;--blue-l:#E6F1FB;
+  --amber:#854F0B;--amber-l:#FAEEDA;
+  --pink:#993556;--pink-l:#F5D0E4;
+  --gray:#F1EFE8;--text:#2C2C2A;--text-s:#5F5E5A;--border:#D3D1C7;
+}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F5F4F0;color:var(--text);min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:#fff;border-bottom:2px solid var(--mg);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.logo{width:8px;height:8px;background:var(--mg);border-radius:50%}
+.app-title{font-size:15px;font-weight:600}
+.app-sub{font-size:11px;color:var(--text-s)}
+.refresh-btn{display:flex;align-items:center;gap:6px;padding:6px 14px;font-size:12px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;color:var(--text-s);font-family:inherit}
+.refresh-btn:hover{background:var(--gray)}
+.spin{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* NAV */
+.nav-tabs{display:flex;gap:2px;background:#fff;border-bottom:1px solid var(--border);padding:0 24px}
+.nav-tab{padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text-s);transition:all .15s}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--mg);border-bottom-color:var(--mg);font-weight:500}
+
+/* MAIN */
+.main{max-width:1200px;margin:0 auto;padding:20px 24px 60px}
+
+/* FILTERS */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;background:#fff;border-radius:10px;border:1px solid var(--border);padding:12px 16px;align-items:center}
+.filter-bar label{font-size:11px;color:var(--text-s);font-weight:500;margin-right:4px}
+.filter-bar select{font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text);cursor:pointer}
+.filter-bar select:focus{outline:none;border-color:var(--mg)}
+.filter-sep{width:1px;height:20px;background:var(--border);margin:0 4px}
+.nilai-badge{font-size:12px;font-weight:600;color:var(--mg);padding:4px 12px;background:var(--mg-l);border-radius:6px}
+
+/* SUMMARY CARDS */
+.summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.s-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:12px 14px}
+.s-label{font-size:10px;color:var(--text-s);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.s-val{font-size:22px;font-weight:600}
+.s-sub{font-size:10px;color:var(--text-s);margin-top:2px}
+
+/* LOADING */
+.loading{text-align:center;padding:48px;color:var(--text-s)}
+.spinner{width:28px;height:28px;border:2px solid var(--mg-l);border-top:2px solid var(--mg);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+
+/* TABLE */
+.tbl-wrap{background:#fff;border-radius:10px;border:1px solid var(--border);overflow:hidden}
+.tbl-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.tbl-title{font-size:13px;font-weight:500}
+.search-input{font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;width:200px}
+.search-input:focus{outline:none;border-color:var(--mg)}
+.tbl-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:8px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--text-s);border-bottom:1px solid var(--border);background:var(--gray);white-space:nowrap;text-transform:uppercase;letter-spacing:.03em;cursor:pointer;user-select:none}
+th:hover{background:#E8E6DF}
+td{padding:8px 12px;border-bottom:1px solid #F0EEE8;color:var(--text);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAF8}
+.rank-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600}
+.r1{background:#EAF3DE;color:#27500A}
+.r2{background:#E6F1FB;color:#0C447C}
+.r3{background:#FAEEDA;color:#633806}
+.score-bar{display:flex;align-items:center;gap:6px}
+.mini-bar{flex:1;height:5px;background:var(--gray);border-radius:3px;overflow:hidden;max-width:60px}
+.mini-fill{height:100%;border-radius:3px;background:var(--mg)}
+.export-btn{padding:6px 12px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;color:var(--text-s);font-family:inherit}
+.export-btn:hover{background:var(--gray)}
+
+/* BREAKDOWN */
+.breakdown-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.b-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:16px}
+.b-title{font-size:13px;font-weight:500;margin-bottom:12px}
+.b-row{display:grid;grid-template-columns:140px 1fr 48px;align-items:center;gap:8px;margin-bottom:8px}
+.b-label{font-size:12px;color:var(--text-s)}
+.b-bar-wrap{height:7px;background:var(--gray);border-radius:4px;overflow:hidden}
+.b-bar-fill{height:100%;border-radius:4px}
+.b-val{font-size:12px;font-weight:600;text-align:right}
+.dist-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.dist-card{background:var(--gray);border-radius:8px;padding:10px;text-align:center}
+.dist-range{font-size:11px;color:var(--text-s);margin-bottom:4px}
+.dist-count{font-size:18px;font-weight:600}
+.dist-label{font-size:10px;color:var(--text-s)}
+
+/* PEER WINNER */
+.winner-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.winner-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:12px}
+.winner-div{font-size:10px;font-weight:600;color:var(--text-s);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px}
+.winner-rank{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.winner-badge{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600}
+.winner-nama{font-size:12px;font-weight:500}
+.winner-count{font-size:11px;color:var(--text-s)}
+
+.page{display:none}.page.active{display:block}
+.empty{text-align:center;padding:32px;color:var(--text-s);font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo"></div>
+    <div><div class="app-title">Culture Scoring Dashboard</div><div class="app-sub">Anteraja — People & Culture</div></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span id="lastSync" style="font-size:11px;color:var(--text-s)">Belum sync</span>
+    <button class="refresh-btn" onclick="loadData()"><span id="refreshIcon">↻</span> Refresh data</button>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="switchTab('leaderboard',this)">Leaderboard</div>
+  <div class="nav-tab" onclick="switchTab('breakdown',this)">Breakdown</div>
+  <div class="nav-tab" onclick="switchTab('peerwinners',this)">Peer Recognition</div>
+</div>
+
+<div class="main">
+
+  <!-- FILTERS -->
+  <div class="filter-bar">
+    <label>Bulan</label>
+    <select id="f_bulan" onchange="applyFilters()">
+      <option value="">Semua bulan</option>
+      <option>Januari</option><option>Februari</option><option>Maret</option>
+      <option>April</option><option>Mei</option><option>Juni</option>
+      <option>Juli</option><option>Agustus</option><option>September</option>
+      <option>Oktober</option><option>November</option><option>Desember</option>
+    </select>
+    <div class="filter-sep"></div>
+    <label>Divisi</label>
+    <select id="f_divisi" onchange="onFilterDivisi()">
+      <option value="">Semua divisi</option>
+    </select>
+    <label>Departemen</label>
+    <select id="f_dept" onchange="applyFilters()">
+      <option value="">Semua departemen</option>
+    </select>
+    <label>Level</label>
+    <select id="f_level" onchange="applyFilters()">
+      <option value="">Semua level</option>
+      <option>LEADER</option><option>COORDINATOR</option><option>STAFF</option>
+      <option>SUPERVISOR</option><option>SECT HEAD</option><option>DEPT HEAD</option>
+      <option>AVP</option><option>VP</option><option>SVP</option><option>DIR</option>
+    </select>
+    <div class="filter-sep"></div>
+    <span class="nilai-badge" id="nilaiAktif">—</span>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary" id="summaryCards">
+    <div class="s-card"><div class="s-label">Total karyawan</div><div class="s-val">—</div></div>
+    <div class="s-card"><div class="s-label">Rata-rata skor</div><div class="s-val">—</div></div>
+    <div class="s-card"><div class="s-label">Skor tertinggi</div><div class="s-val">—</div></div>
+    <div class="s-card"><div class="s-label">Sudah berpartisipasi</div><div class="s-val">—</div></div>
+    <div class="s-card"><div class="s-label">Nilai bulan ini</div><div class="s-val" id="nilaiCard" style="color:var(--mg)">—</div></div>
+  </div>
+
+  <!-- LEADERBOARD PAGE -->
+  <div class="page active" id="page-leaderboard">
+    <div class="tbl-wrap">
+      <div class="tbl-head">
+        <span class="tbl-title">Leaderboard <span id="lbCount" style="font-weight:400;color:var(--text-s)"></span></span>
+        <div style="display:flex;gap:8px">
+          <input class="search-input" type="text" placeholder="Cari nama..." oninput="renderLeaderboard(this.value)">
+          <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+        </div>
+      </div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr>
+            <th onclick="sortBy('rank')">#</th>
+            <th onclick="sortBy('nama')">Nama</th>
+            <th onclick="sortBy('divisi')">Divisi</th>
+            <th onclick="sortBy('dept')">Departemen</th>
+            <th onclick="sortBy('level')">Level</th>
+            <th onclick="sortBy('total')">Total ↓</th>
+            <th onclick="sortBy('kepanitiaan')">Kep.</th>
+            <th onclick="sortBy('clubaja')">Club</th>
+            <th onclick="sortBy('rabuasik')">Rabu</th>
+            <th onclick="sortBy('va')">Value</th>
+          </tr></thead>
+          <tbody id="lbBody"><tr><td colspan="10" class="empty">Klik Refresh data untuk memuat</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- BREAKDOWN PAGE -->
+  <div class="page" id="page-breakdown">
+    <div class="breakdown-grid">
+      <div class="b-card">
+        <div class="b-title">Rata-rata skor per kategori</div>
+        <div id="catBreakdown"></div>
+      </div>
+      <div class="b-card">
+        <div class="b-title">Distribusi skor total</div>
+        <div class="dist-row" id="distCards"></div>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-head"><span class="tbl-title">Skor per divisi (rata-rata)</span></div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr>
+            <th>Divisi</th><th>Karyawan</th><th>Rata-rata Total</th>
+            <th>Kepanitiaan</th><th>ClubAja</th><th>Rabu Asik</th><th>Value Awareness</th>
+          </tr></thead>
+          <tbody id="divisiBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PEER WINNERS PAGE -->
+  <div class="page" id="page-peerwinners">
+    <div class="tbl-wrap" style="margin-bottom:16px">
+      <div class="tbl-head">
+        <span class="tbl-title">Pemenang Peer Recognition per Divisi <span id="pwBulan" style="font-weight:400;color:var(--text-s)"></span></span>
+      </div>
+      <div class="winner-grid" id="winnerGrid" style="padding:16px">
+        <div class="empty" style="grid-column:1/-1">Klik Refresh data untuk memuat</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwpbUsxnZFCkYrp2W12-fYJ2bnCIvYpm4SdXQJbKCQwHrThefffdeDT78HSH-ptssNq/exec";
+const SATRIA = {'1':'Sigap','2':'Aman','3':'Terpercaya','4':'Ramah','5':'Integritas','6':'Amanah','7':'Sigap','8':'Aman','9':'Terpercaya','10':'Ramah','11':'Integritas','12':'Amanah'};
+const CAT_COLORS = {kepanitiaan:'#3B6D11',clubaja:'#185FA5',rabuasik:'#854F0B',va:'#993556'};
+const CAT_LABELS = {kepanitiaan:'Kepanitiaan (30)',clubaja:'ClubAja (15)',rabuasik:'Rabu Asik (15)',va:'Value Awareness (40)'};
+
+let allScores = [];
+let karyawanMaster = {};
+let sortCol = 'total', sortDir = -1;
+
+// SATRIA nilai aktif based on current month
+function getNilaiAktif() {
+  const m = String(new Date().getMonth() + 1);
+  return SATRIA[m] || '—';
+}
+
+function updateNilaiBadge() {
+  const nilai = getNilaiAktif();
+  document.getElementById('nilaiAktif').textContent = 'Nilai: ' + nilai;
+  document.getElementById('nilaiCard').textContent = nilai;
+}
+
+// Load all data from Apps Script
+async function loadData() {
+  const icon = document.getElementById('refreshIcon');
+  icon.classList.add('spin');
+
+  try {
+    // 1. Load karyawan master
+    await new Promise((resolve, reject) => {
+      window._karyawanCb = d => { if(d.status==='ok') karyawanMaster=d.data; resolve(); };
+      const s = document.createElement('script');
+      s.src = API_URL + '?action=getKaryawan&callback=_karyawanCb';
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+
+    // 2. Load scoring data
+    await new Promise((resolve, reject) => {
+      window._scoringCb = d => {
+        if(d.status==='ok') {
+          allScores = d.data;
+          resolve();
+        } else reject(new Error(d.message));
+      };
+      const bulan = document.getElementById('f_bulan').value;
+      const nilai = getNilaiAktif();
+      const s = document.createElement('script');
+      s.src = API_URL + '?action=getScoring&bulan=' + encodeURIComponent(bulan) + '&nilaiAktif=' + encodeURIComponent(nilai) + '&callback=_scoringCb';
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+
+    // Populate filters
+    populateFilters();
+    applyFilters();
+
+    document.getElementById('lastSync').textContent = 'Sync: ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    alert('Gagal memuat data: ' + e.message);
+  } finally {
+    icon.classList.remove('spin');
+  }
+}
+
+function populateFilters() {
+  const divSel = document.getElementById('f_divisi');
+  const current = divSel.value;
+  divSel.innerHTML = '<option value="">Semua divisi</option>';
+  Object.keys(karyawanMaster).sort().forEach(d => {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d; divSel.appendChild(o);
+  });
+  if (current) divSel.value = current;
+}
+
+function onFilterDivisi() {
+  const div = document.getElementById('f_divisi').value;
+  const deptSel = document.getElementById('f_dept');
+  deptSel.innerHTML = '<option value="">Semua departemen</option>';
+  if (div && karyawanMaster[div]) {
+    Object.keys(karyawanMaster[div]).sort().forEach(d => {
+      const o = document.createElement('option'); o.value = d; o.textContent = d; deptSel.appendChild(o);
+    });
+  }
+  applyFilters();
+}
+
+function getFilteredScores() {
+  const divisi = document.getElementById('f_divisi').value;
+  const dept   = document.getElementById('f_dept').value;
+  const level  = document.getElementById('f_level').value;
+
+  return allScores.filter(s => {
+    if (divisi && s.divisi !== divisi) return false;
+    if (dept && s.departemen !== dept) return false;
+    if (level && s.level !== level) return false;
+    return true;
+  });
+}
+
+function applyFilters() {
+  const filtered = getFilteredScores();
+  updateSummary(filtered);
+  renderLeaderboard('');
+  renderBreakdown(filtered);
+  renderPeerWinners();
+}
+
+function updateSummary(filtered) {
+  const total = filtered.length;
+  const avg = total > 0 ? filtered.reduce((s,e)=>s+e.total,0)/total : 0;
+  const max = total > 0 ? Math.max(...filtered.map(e=>e.total)) : 0;
+  const participated = filtered.filter(e=>e.total>0).length;
+  const cards = document.getElementById('summaryCards');
+  const vals = [total, avg.toFixed(1), max.toFixed(1), participated];
+  const subs = ['karyawan','dari 100','skor','sudah berpartisipasi'];
+  const labels = ['Total karyawan','Rata-rata skor','Skor tertinggi','Sudah berpartisipasi'];
+  cards.innerHTML = [...vals.map((v,i)=>`<div class="s-card"><div class="s-label">${labels[i]}</div><div class="s-val">${v}</div><div class="s-sub">${subs[i]}</div></div>`),
+    `<div class="s-card"><div class="s-label">Nilai bulan ini</div><div class="s-val" id="nilaiCard" style="color:var(--mg)">${getNilaiAktif()}</div></div>`].join('');
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = -1; }
+  renderLeaderboard(document.querySelector('.search-input')?.value || '');
+}
+
+function renderLeaderboard(search) {
+  const filtered = getFilteredScores().filter(s => !search || s.nama.toLowerCase().includes(search.toLowerCase()));
+  filtered.sort((a,b) => {
+    const av = sortCol==='rank' ? a.total : (a[sortCol]||0);
+    const bv = sortCol==='rank' ? b.total : (b[sortCol]||0);
+    return typeof av==='string' ? av.localeCompare(bv)*sortDir : (bv-av)*sortDir;
+  });
+
+  document.getElementById('lbCount').textContent = '(' + filtered.length + ' karyawan)';
+  const maxT = filtered[0]?.total || 100;
+  const tbody = document.getElementById('lbBody');
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">Tidak ada data</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((e,i) => {
+    const rc = i===0?'r1':i===1?'r2':i===2?'r3':'';
+    const bw = Math.round(e.total/maxT*60);
+    return `<tr>
+      <td><span class="rank-badge ${rc}">${i+1}</span></td>
+      <td style="font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis">${e.nama}</td>
+      <td style="color:var(--text-s);max-width:120px;overflow:hidden;text-overflow:ellipsis">${e.divisi||''}</td>
+      <td style="color:var(--text-s)">${e.departemen||''}</td>
+      <td style="color:var(--text-s)">${e.level||''}</td>
+      <td><div class="score-bar"><strong>${e.total}</strong><div class="mini-bar"><div class="mini-fill" style="width:${bw}px"></div></div></div></td>
+      <td style="color:var(--green)">${e.kepanitiaan}</td>
+      <td style="color:var(--blue)">${e.clubaja}</td>
+      <td style="color:var(--amber)">${e.rabuasik}</td>
+      <td style="color:var(--pink)">${e.va}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderBreakdown(filtered) {
+  if (!filtered.length) return;
+  const cats = ['kepanitiaan','clubaja','rabuasik','va'];
+  const maxBobots = {kepanitiaan:30,clubaja:15,rabuasik:15,va:40};
+
+  // Category averages
+  const catHtml = cats.map(c => {
+    const avg = filtered.reduce((s,e)=>s+(e[c]||0),0)/filtered.length;
+    const pct = (avg/maxBobots[c]*100).toFixed(0);
+    return `<div class="b-row">
+      <div class="b-label">${CAT_LABELS[c]}</div>
+      <div class="b-bar-wrap"><div class="b-bar-fill" style="width:${pct}%;background:${CAT_COLORS[c]}"></div></div>
+      <div class="b-val" style="color:${CAT_COLORS[c]}">${avg.toFixed(1)}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('catBreakdown').innerHTML = catHtml;
+
+  // Distribution
+  const ranges = [[0,20],[21,40],[41,60],[61,80],[81,100]];
+  document.getElementById('distCards').innerHTML = ranges.map(([lo,hi]) => {
+    const count = filtered.filter(e=>e.total>=lo&&e.total<=hi).length;
+    return `<div class="dist-card"><div class="dist-range">${lo}–${hi}</div><div class="dist-count">${count}</div><div class="dist-label">karyawan</div></div>`;
+  }).join('');
+
+  // Per divisi
+  const byDiv = {};
+  filtered.forEach(e => {
+    if (!e.divisi) return;
+    if (!byDiv[e.divisi]) byDiv[e.divisi] = [];
+    byDiv[e.divisi].push(e);
+  });
+  const rows = Object.entries(byDiv).sort((a,b)=>a[0].localeCompare(b[0])).map(([div,emps]) => {
+    const avg = f => (emps.reduce((s,e)=>s+(e[f]||0),0)/emps.length).toFixed(1);
+    return `<tr>
+      <td style="font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis">${div}</td>
+      <td style="text-align:center">${emps.length}</td>
+      <td style="text-align:center;font-weight:600">${avg('total')}</td>
+      <td style="text-align:center;color:var(--green)">${avg('kepanitiaan')}</td>
+      <td style="text-align:center;color:var(--blue)">${avg('clubaja')}</td>
+      <td style="text-align:center;color:var(--amber)">${avg('rabuasik')}</td>
+      <td style="text-align:center;color:var(--pink)">${avg('va')}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('divisiBody').innerHTML = rows || '<tr><td colspan="7" class="empty">Tidak ada data</td></tr>';
+}
+
+function renderPeerWinners() {
+  const bulan = document.getElementById('f_bulan').value;
+  document.getElementById('pwBulan').textContent = bulan ? '— ' + bulan : '';
+
+  window._peerWinnersCb = function(d) {
+    const grid = document.getElementById('winnerGrid');
+    if (!d || d.status !== 'ok' || !d.data || !d.data.length) {
+      grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Belum ada data peer recognition untuk periode ini</div>';
+      return;
+    }
+    // Group by divisi
+    const byDiv = {};
+    d.data.forEach(w => {
+      if (!byDiv[w.divisi]) byDiv[w.divisi] = [];
+      byDiv[w.divisi].push(w);
+    });
+    grid.innerHTML = Object.entries(byDiv).sort((a,b)=>a[0].localeCompare(b[0])).map(([div, winners]) => `
+      <div class="winner-card">
+        <div class="winner-div">${div}</div>
+        ${winners.map((w,i) => `
+          <div class="winner-rank">
+            <span class="winner-badge ${i===0?'r1':'r2'}">${i===0?'#1':'#2'}</span>
+            <div>
+              <div class="winner-nama">${w.nama || '—'}</div>
+              <div class="winner-count">${w.uniqueNominators||0} nominasi unik</div>
+            </div>
+          </div>`).join('')}
+      </div>`).join('');
+  };
+
+  const s = document.createElement('script');
+  s.src = API_URL + '?action=getPeerWinners&bulan=' + encodeURIComponent(bulan) + '&nilaiAktif=' + encodeURIComponent(getNilaiAktif()) + '&callback=_peerWinnersCb';
+  document.head.appendChild(s);
+}
+
+function exportCSV() {
+  const filtered = getFilteredScores();
+  if (!filtered.length) return;
+  const hdr = 'Rank,Nama,Divisi,Departemen,Level,Total,Kepanitiaan,ClubAja,Rabu Asik,Value Awareness';
+  const rows = [...filtered].sort((a,b)=>b.total-a.total).map((e,i) =>
+    [i+1,`"${e.nama}"`,`"${e.divisi||''}"`,`"${e.departemen||''}"`,e.level||'',e.total,e.kepanitiaan,e.clubaja,e.rabuasik,e.va].join(','));
+  const blob = new Blob([[hdr,...rows].join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'CultureScoring_' + (document.getElementById('f_bulan').value||'Semua') + '.csv';
+  a.click();
+}
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-'+tab).classList.add('active');
+  if (tab==='peerwinners') renderPeerWinners();
+}
+
+// Init
+updateNilaiBadge();
+</script>
+</body>
+</html>
