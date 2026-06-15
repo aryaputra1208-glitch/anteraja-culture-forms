@@ -130,7 +130,7 @@ tr:hover td{background:#FAFAF8}
   <!-- FILTERS -->
   <div class="filter-bar">
     <label>Bulan</label>
-    <select id="f_bulan" onchange="applyFilters()">
+    <select id="f_bulan" onchange="">
       <option value="">Semua bulan</option>
       <option>Januari</option><option>Februari</option><option>Maret</option>
       <option>April</option><option>Mei</option><option>Juni</option>
@@ -139,22 +139,30 @@ tr:hover td{background:#FAFAF8}
     </select>
     <div class="filter-sep"></div>
     <label>Divisi</label>
-    <select id="f_divisi" onchange="onFilterDivisi()">
+    <select id="f_divisi" onchange="onFilterDivisi(false)">
       <option value="">Semua divisi</option>
     </select>
     <label>Departemen</label>
-    <select id="f_dept" onchange="applyFilters()">
+    <select id="f_dept" onchange="">
       <option value="">Semua departemen</option>
     </select>
     <label>Level</label>
-    <select id="f_level" onchange="applyFilters()">
+    <select id="f_level" onchange="">
       <option value="">Semua level</option>
       <option>LEADER</option><option>COORDINATOR</option><option>STAFF</option>
       <option>SUPERVISOR</option><option>SECT HEAD</option><option>DEPT HEAD</option>
       <option>AVP</option><option>VP</option><option>SVP</option><option>DIR</option>
     </select>
     <div class="filter-sep"></div>
+    <label>Nilai</label>
+    <select id="f_nilai" onchange="">
+      <option value="">Semua nilai</option>
+      <option>Sigap</option><option>Aman</option><option>Terpercaya</option>
+      <option>Ramah</option><option>Integritas</option><option>Amanah</option>
+    </select>
+    <div class="filter-sep"></div>
     <span class="nilai-badge" id="nilaiAktif">—</span>
+    <button onclick="applyFilters()" style="padding:6px 14px;font-size:12px;background:var(--mg);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:500">🔍 Terapkan</button>
   </div>
 
   <!-- SUMMARY -->
@@ -237,7 +245,7 @@ tr:hover td{background:#FAFAF8}
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxOHwSxEUxyZmjiv20E4pzFhkcKvuHx0dd_XdPSKyHccR7pHs6b0cml3waLdkkmva0/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzDZYkwgzjM1LgP2aPuoeP_T3oMUfEavRAYU9julG99CO_guZu9OsjGKN1G2JkwjQo/exec";
 const SATRIA = {'1':'Sigap','2':'Aman','3':'Terpercaya','4':'Ramah','5':'Integritas','6':'Amanah','7':'Sigap','8':'Aman','9':'Terpercaya','10':'Ramah','11':'Integritas','12':'Amanah'};
 const CAT_COLORS = {kepanitiaan:'#3B6D11',clubaja:'#185FA5',rabuasik:'#854F0B',va:'#993556'};
 const CAT_LABELS = {kepanitiaan:'Kepanitiaan (30)',clubaja:'ClubAja (15)',rabuasik:'Rabu Asik (15)',va:'Value Awareness (40)'};
@@ -282,7 +290,8 @@ async function loadData() {
         } else reject(new Error(d.message));
       };
       const bulan = document.getElementById('f_bulan').value;
-      const nilai = getNilaiAktif();
+      const nilaiFilter = document.getElementById('f_nilai').value;
+      const nilai = nilaiFilter || getNilaiAktif();
       const s = document.createElement('script');
       s.src = API_URL + '?action=getScoring&bulan=' + encodeURIComponent(bulan) + '&nilaiAktif=' + encodeURIComponent(nilai) + '&callback=_scoringCb';
       s.onerror = reject;
@@ -312,7 +321,7 @@ function populateFilters() {
   if (current) divSel.value = current;
 }
 
-function onFilterDivisi() {
+function onFilterDivisi(doApply=true) {
   const div = document.getElementById('f_divisi').value;
   const deptSel = document.getElementById('f_dept');
   deptSel.innerHTML = '<option value="">Semua departemen</option>';
@@ -321,7 +330,7 @@ function onFilterDivisi() {
       const o = document.createElement('option'); o.value = d; o.textContent = d; deptSel.appendChild(o);
     });
   }
-  applyFilters();
+  if(doApply) applyFilters();
 }
 
 function getFilteredScores() {
@@ -338,11 +347,8 @@ function getFilteredScores() {
 }
 
 function applyFilters() {
-  const filtered = getFilteredScores();
-  updateSummary(filtered);
-  renderLeaderboard('');
-  renderBreakdown(filtered);
-  renderPeerWinners();
+  // Reload data from server when bulan or nilai filter changes
+  loadData();
 }
 
 function updateSummary(filtered) {
