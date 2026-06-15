@@ -261,9 +261,11 @@ function getNilaiAktif() {
 }
 
 function updateNilaiBadge() {
-  const nilai = getNilaiAktif();
+  const nilaiFilter = document.getElementById('f_nilai') ? document.getElementById('f_nilai').value : '';
+  const nilai = nilaiFilter || getNilaiAktif();
   document.getElementById('nilaiAktif').textContent = 'Nilai: ' + nilai;
-  document.getElementById('nilaiCard').textContent = nilai;
+  const nc = document.getElementById('nilaiCard');
+  if (nc) nc.textContent = nilai;
 }
 
 // Load all data from Apps Script
@@ -352,6 +354,7 @@ function getFilteredScores() {
 
 let _lastBulan = '', _lastNilai = '';
 function applyFilters() {
+  updateNilaiBadge();
   const bulan = document.getElementById('f_bulan').value;
   const nilaiFilter = document.getElementById('f_nilai') ? document.getElementById('f_nilai').value : '';
   const nilai = nilaiFilter || getNilaiAktif();
@@ -467,7 +470,9 @@ function renderBreakdown(filtered) {
 
 function renderPeerWinners() {
   const bulan = document.getElementById('f_bulan').value;
-  document.getElementById('pwBulan').textContent = bulan ? '— ' + bulan : '';
+  const nilaiFilter = document.getElementById('f_nilai') ? document.getElementById('f_nilai').value : '';
+  const nilai = nilaiFilter || getNilaiAktif();
+  document.getElementById('pwBulan').textContent = (bulan ? '— ' + bulan : '') + ' · Nilai: ' + nilai;
 
   window._peerWinnersCb = function(d) {
     const grid = document.getElementById('winnerGrid');
@@ -496,7 +501,7 @@ function renderPeerWinners() {
   };
 
   const s = document.createElement('script');
-  s.src = API_URL + '?action=getPeerWinners&bulan=' + encodeURIComponent(bulan) + '&nilaiAktif=' + encodeURIComponent(getNilaiAktif()) + '&callback=_peerWinnersCb';
+  s.src = API_URL + '?action=getPeerWinners&bulan=' + encodeURIComponent(bulan) + '&nilaiAktif=' + encodeURIComponent(nilai) + '&callback=_peerWinnersCb';
   document.head.appendChild(s);
 }
 
