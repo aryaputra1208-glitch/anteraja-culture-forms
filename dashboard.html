@@ -285,9 +285,9 @@ async function loadData() {
     await new Promise((resolve, reject) => {
       window._scoringCb = d => {
         if(d.status==='ok') {
-          allScores = d.data;
+          allScores = d.data || [];
           resolve();
-        } else reject(new Error(d.message));
+        } else reject(new Error(d.message || 'Unknown error'));
       };
       const bulan = document.getElementById('f_bulan').value;
       const nilaiFilter = document.getElementById('f_nilai').value;
@@ -298,9 +298,13 @@ async function loadData() {
       document.head.appendChild(s);
     });
 
-    // Populate filters
+    // Populate filters then render
     populateFilters();
-    applyFilters();
+    const filtered = getFilteredScores();
+    updateSummary(filtered);
+    renderLeaderboard('');
+    renderBreakdown(filtered);
+    renderPeerWinners();
 
     document.getElementById('lastSync').textContent = 'Sync: ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
   } catch(e) {
@@ -346,9 +350,20 @@ function getFilteredScores() {
   });
 }
 
+let _lastBulan = '', _lastNilai = '';
 function applyFilters() {
-  // Reload data from server when bulan or nilai filter changes
-  loadData();
+  const bulan = document.getElementById('f_bulan').value;
+  const nilaiFilter = document.getElementById('f_nilai') ? document.getElementById('f_nilai').value : '';
+  const nilai = nilaiFilter || getNilaiAktif();
+  if (!allScores.length || bulan !== _lastBulan || nilai !== _lastNilai) {
+    _lastBulan = bulan; _lastNilai = nilai;
+    loadData(); return;
+  }
+  const filtered = getFilteredScores();
+  updateSummary(filtered);
+  renderLeaderboard('');
+  renderBreakdown(filtered);
+  renderPeerWinners();
 }
 
 function updateSummary(filtered) {
