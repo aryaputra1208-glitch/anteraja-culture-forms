@@ -69,6 +69,7 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
   </div>
   <div class="card">
     <div class="section-label">Karyawan yang Kamu Nominasikan</div>
+    <div style="font-size:12px;color:#854F0B;background:#FAEEDA;padding:8px 12px;border-radius:8px;margin-bottom:16px">⚠️ Kamu hanya bisa menominasi rekan dari divisi yang sama denganmu.</div>
     <div class="field"><label>Divisi <span class="req">*</span></label>
       <select id="f3_div_r" onchange="onDivisiChange('f3_div_r','f3_dept_r','f3_nama_r','f3_nip_r')"></select></div>
     <div class="field"><label>Departemen <span class="req">*</span></label>
@@ -109,7 +110,7 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
   <button class="reset-btn" onclick="resetForm()">Isi lagi</button>
 </div>
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzDZYkwgzjM1LgP2aPuoeP_T3oMUfEavRAYU9julG99CO_guZu9OsjGKN1G2JkwjQo/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyTvx00TOXxPTX6rFJ9h3v2cxuIZipI7S_iFiSGagpfsQXkX8m6tYvpvsUI9WHz3AS-/exec";
 let EMP = {};
 
 // Fetch employee data from Sheet on load
@@ -233,6 +234,9 @@ async function handleSubmit(){
   if(!nipP){showError('err_f3_nama_r','Lengkapi data dirimu');v=false;}
   if(!nipR){showError('err_f3_nama_r','Pilih karyawan yang dinominasi');v=false;}
   if(nipP&&nipR&&nipP===nipR){showError('err_f3_nama_r','Tidak bisa menominasi diri sendiri');v=false;}
+  const divP = document.getElementById('f3_div_p').value;
+  const divR = document.getElementById('f3_div_r').value;
+  if(divP&&divR&&divP!==divR){showError('err_f3_nama_r','Peer Recognition hanya bisa dalam divisi yang sama');v=false;}
   if(!document.getElementById('f3_tgl').value){showError('err_f3_tgl','Pilih tanggal');v=false;}
   if(!getRadio('f3_nilai')){showError('err_f3_nilai','Pilih nilai SATRIA');v=false;}
   const cerita=document.getElementById('f3_cerita').value.trim();
