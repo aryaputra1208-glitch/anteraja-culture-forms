@@ -57,16 +57,16 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
   <div class="card">
     <div class="section-label">Data Karyawan</div>
     <div class="field"><label>Divisi <span class="req">*</span></label>
-      <select id="f2_div" onchange="onDivisiChange('f2_div','f2_dept','f2_nama','f2_nip')"></select></div>
+      <select id="f2_div" onchange="onDivisiChange('f2_div','f2_dept')"></select></div>
     <div class="field"><label>Departemen <span class="req">*</span></label>
-      <select id="f2_dept" disabled onchange="onDeptChange('f2_div','f2_dept','f2_nama','f2_nip')">
+      <select id="f2_dept" disabled onchange=""">
         <option value="">-- Pilih Divisi dulu --</option></select></div>
     <div class="field"><label>Nama Karyawan <span class="req">*</span></label>
-      <select id="f2_nama" disabled onchange="onNamaChange('f2_nama','f2_nip','f2_lvl')">
-        <option value="">-- Pilih Departemen dulu --</option></select></div>
-    <div class="field"><label>NIP</label>
-      <input type="text" id="f2_nip" readonly placeholder="Otomatis terisi">
-      <div class="hint">Terisi otomatis setelah pilih nama</div></div>
+      <input type="text" id="f2_nama" placeholder="Ketik nama lengkap">
+      <div class="error-msg" id="err_f2_nama"></div></div>
+    <div class="field"><label>NIP <span class="req">*</span></label>
+      <input type="text" id="f2_nip" placeholder="Ketik NIP">
+      <div class="error-msg" id="err_f2_nip"></div></div>
     <input type="hidden" id="f2_lvl">
   </div>
   <div class="card">
@@ -115,7 +115,7 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
   <button class="reset-btn" onclick="resetForm()">Isi lagi</button>
 </div>
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyTvx00TOXxPTX6rFJ9h3v2cxuIZipI7S_iFiSGagpfsQXkX8m6tYvpvsUI9WHz3AS-/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzgr8U9XrPltuvMa_JNMnkLKH0_Iwc_Dq1R3Ug5mk3YsEpRrr8pGBewt8DEqjp90c67/exec";
 let EMP = {};
 
 // Fetch employee data from Sheet on load
@@ -165,14 +165,12 @@ function populateDivisi(id) {
   });
 }
 
-function onDivisiChange(dv,dp,nm,nk) {
+function onDivisiChange(dv,dp) {
   const div = document.getElementById(dv).value;
-  const ds = document.getElementById(dp), ns = document.getElementById(nm), ne = document.getElementById(nk);
+  const ds = document.getElementById(dp);
   ds.innerHTML = '<option value="">-- Pilih Departemen --</option>'; ds.disabled = !div;
-  ns.innerHTML = '<option value="">-- Pilih Nama --</option>'; ns.disabled = true;
-  ne.value = ''; ne.classList.remove('autofill');
   if (!div) return;
-  Object.keys(EMP[div]).sort().forEach(d => {
+  (EMP[div]||[]).forEach(d => {
     const o = document.createElement('option'); o.value = d; o.textContent = d; ds.appendChild(o);
   });
 }
@@ -237,7 +235,10 @@ function showBlock(tipe){
 
 async function handleSubmit(){
   clearErrors();let v=true;
-  if(!document.getElementById('f2_nip').value){showError('err_f2_tipe','Pilih nama karyawan');v=false;}
+  if(!document.getElementById('f2_div').value){showError('err_f2_nama','Pilih divisi');v=false;}
+  if(!document.getElementById('f2_dept').value){showError('err_f2_nama','Pilih departemen');v=false;}
+  if(!document.getElementById('f2_nama').value.trim()){showError('err_f2_nama','Isi nama karyawan');v=false;}
+  if(!document.getElementById('f2_nip').value.trim()){showError('err_f2_nip','Isi NIP');v=false;}
   if(!document.getElementById('f2_tgl').value){showError('err_f2_tgl','Pilih tanggal');v=false;}
   const tipe=getRadio('f2_tipe');
   if(!tipe){showError('err_f2_tipe','Pilih tipe aktivitas');v=false;}
@@ -249,15 +250,14 @@ async function handleSubmit(){
   if(!document.getElementById('f2_house').value){showError('err_f2_house','Pilih house / nilai');v=false;}
   if(!v)return;
   const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='Mengirim...';
-  const ns=document.getElementById('f2_nama'),opt=ns.options[ns.selectedIndex];
   const jenis_konten=tipe==='Konten'?getRadio('f2_jenis'):tipe;
   const keterangan=tipe==='Konten'?document.getElementById('f2_pelajaran').value.trim():document.getElementById('f2_deskripsi').value.trim();
   try{
     await submitToSheet('ParticipationPoint_Forms',{
       timestamp:new Date().toISOString(),tanggal:document.getElementById('f2_tgl').value,
-      nama:opt.dataset.nama,nip:document.getElementById('f2_nip').value,
+      nama:document.getElementById('f2_nama').value.trim(),nip:document.getElementById('f2_nip').value.trim(),
       divisi:document.getElementById('f2_div').value,departemen:document.getElementById('f2_dept').value,
-      level:document.getElementById('f2_lvl').value,jenis_konten,keterangan,
+      level:'',jenis_konten,keterangan,
       house:document.getElementById('f2_house').value
     });
     document.getElementById('mainForm').style.display='none';
@@ -270,7 +270,9 @@ function resetForm(){
   document.getElementById('successCard').style.display='none';
   document.getElementById('submitBtn').disabled=false;document.getElementById('submitBtn').textContent='Kirim';
   document.getElementById('f2_div').value='';
-  onDivisiChange('f2_div','f2_dept','f2_nama','f2_nip');
+  document.getElementById('f2_dept').innerHTML='<option value="">-- Pilih Divisi dulu --</option>';
+  document.getElementById('f2_dept').disabled=true;
+  document.getElementById('f2_nama').value='';document.getElementById('f2_nip').value='';
   document.getElementById('f2_tgl').value='';document.getElementById('f2_house').value='';
   document.getElementById('block_konten').style.display='none';document.getElementById('block_activity').style.display='none';
   document.querySelectorAll('.radio-item').forEach(i=>i.classList.remove('selected'));
