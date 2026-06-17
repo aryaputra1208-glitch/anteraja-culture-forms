@@ -37,15 +37,18 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F5F4F0;color:var(--text
 .main{max-width:1200px;margin:0 auto;padding:20px 24px 60px}
 
 /* FILTERS */
-.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;background:#fff;border-radius:10px;border:1px solid var(--border);padding:12px 16px;align-items:center}
-.filter-bar label{font-size:11px;color:var(--text-s);font-weight:500;margin-right:4px}
-.filter-bar select{font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text);cursor:pointer}
+.filter-bar{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;background:#fff;border-radius:10px;border:1px solid var(--border);padding:14px 18px;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:5px;min-width:140px}
+.filter-group label{font-size:10px;color:var(--text-s);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.filter-bar select{font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--text);cursor:pointer;width:100%}
 .filter-bar select:focus{outline:none;border-color:var(--mg)}
-.filter-sep{width:1px;height:20px;background:var(--border);margin:0 4px}
-.nilai-badge{font-size:12px;font-weight:600;color:var(--mg);padding:4px 12px;background:var(--mg-l);border-radius:6px}
+.filter-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
+.nilai-badge{font-size:12px;font-weight:600;color:var(--mg);padding:7px 14px;background:var(--mg-l);border-radius:7px;white-space:nowrap}
+.apply-btn{padding:8px 18px;font-size:13px;background:var(--mg);color:#fff;border:none;border-radius:7px;cursor:pointer;font-family:inherit;font-weight:600;white-space:nowrap;transition:background .15s}
+.apply-btn:hover{background:var(--mg-d)}
 
 /* SUMMARY CARDS */
-.summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
 .s-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:12px 14px}
 .s-label{font-size:10px;color:var(--text-s);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
 .s-val{font-size:22px;font-weight:600}
@@ -129,40 +132,49 @@ tr:hover td{background:#FAFAF8}
 
   <!-- FILTERS -->
   <div class="filter-bar">
-    <label>Bulan</label>
-    <select id="f_bulan" onchange="">
-      <option value="">Semua bulan</option>
-      <option>Januari</option><option>Februari</option><option>Maret</option>
-      <option>April</option><option>Mei</option><option>Juni</option>
-      <option>Juli</option><option>Agustus</option><option>September</option>
-      <option>Oktober</option><option>November</option><option>Desember</option>
-    </select>
-    <div class="filter-sep"></div>
-    <label>Divisi</label>
-    <select id="f_divisi" onchange="onFilterDivisi(false)">
-      <option value="">Semua divisi</option>
-    </select>
-    <label>Departemen</label>
-    <select id="f_dept" onchange="">
-      <option value="">Semua departemen</option>
-    </select>
-    <label>Level</label>
-    <select id="f_level" onchange="">
-      <option value="">Semua level</option>
-      <option>LEADER</option><option>COORDINATOR</option><option>STAFF</option>
-      <option>SUPERVISOR</option><option>SECT HEAD</option><option>DEPT HEAD</option>
-      <option>AVP</option><option>VP</option><option>SVP</option><option>DIR</option>
-    </select>
-    <div class="filter-sep"></div>
-    <label>Nilai</label>
-    <select id="f_nilai" onchange="">
-      <option value="">Semua nilai</option>
-      <option>Sigap</option><option>Aman</option><option>Terpercaya</option>
-      <option>Ramah</option><option>Integritas</option><option>Amanah</option>
-    </select>
-    <div class="filter-sep"></div>
-    <span class="nilai-badge" id="nilaiAktif">—</span>
-    <button onclick="applyFilters()" style="padding:6px 14px;font-size:12px;background:var(--mg);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:500">🔍 Terapkan</button>
+    <div class="filter-group">
+      <label>Bulan</label>
+      <select id="f_bulan" onchange="">
+        <option value="">Semua bulan</option>
+        <option>Januari</option><option>Februari</option><option>Maret</option>
+        <option>April</option><option>Mei</option><option>Juni</option>
+        <option>Juli</option><option>Agustus</option><option>September</option>
+        <option>Oktober</option><option>November</option><option>Desember</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Divisi</label>
+      <select id="f_divisi" onchange="onFilterDivisi(false)">
+        <option value="">Semua divisi</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Departemen</label>
+      <select id="f_dept" onchange="">
+        <option value="">Semua departemen</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Level</label>
+      <select id="f_level" onchange="">
+        <option value="">Semua level</option>
+        <option>LEADER</option><option>COORDINATOR</option><option>STAFF</option>
+        <option>SUPERVISOR</option><option>SECT HEAD</option><option>DEPT HEAD</option>
+        <option>AVP</option><option>VP</option><option>SVP</option><option>DIR</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Nilai</label>
+      <select id="f_nilai" onchange="">
+        <option value="">Semua nilai</option>
+        <option>Sigap</option><option>Aman</option><option>Terpercaya</option>
+        <option>Ramah</option><option>Integritas</option><option>Amanah</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <span class="nilai-badge" id="nilaiAktif">—</span>
+      <button class="apply-btn" onclick="applyFilters()">🔍 Terapkan</button>
+    </div>
   </div>
 
   <!-- SUMMARY -->
@@ -171,7 +183,6 @@ tr:hover td{background:#FAFAF8}
     <div class="s-card"><div class="s-label">Rata-rata skor</div><div class="s-val">—</div></div>
     <div class="s-card"><div class="s-label">Skor tertinggi</div><div class="s-val">—</div></div>
     <div class="s-card"><div class="s-label">Sudah berpartisipasi</div><div class="s-val">—</div></div>
-    <div class="s-card"><div class="s-label">Nilai bulan ini</div><div class="s-val" id="nilaiCard" style="color:var(--mg)">—</div></div>
   </div>
 
   <!-- LEADERBOARD PAGE -->
@@ -264,8 +275,6 @@ function updateNilaiBadge() {
   const nilaiFilter = document.getElementById('f_nilai') ? document.getElementById('f_nilai').value : '';
   const nilai = nilaiFilter || getNilaiAktif();
   document.getElementById('nilaiAktif').textContent = 'Nilai: ' + nilai;
-  const nc = document.getElementById('nilaiCard');
-  if (nc) nc.textContent = nilai;
 }
 
 // Load all data from Apps Script
@@ -378,8 +387,7 @@ function updateSummary(filtered) {
   const vals = [total, avg.toFixed(1), max.toFixed(1), participated];
   const subs = ['karyawan','dari 100','skor','sudah berpartisipasi'];
   const labels = ['Total karyawan','Rata-rata skor','Skor tertinggi','Sudah berpartisipasi'];
-  cards.innerHTML = [...vals.map((v,i)=>`<div class="s-card"><div class="s-label">${labels[i]}</div><div class="s-val">${v}</div><div class="s-sub">${subs[i]}</div></div>`),
-    `<div class="s-card"><div class="s-label">Nilai bulan ini</div><div class="s-val" id="nilaiCard" style="color:var(--mg)">${getNilaiAktif()}</div></div>`].join('');
+  cards.innerHTML = vals.map((v,i)=>`<div class="s-card"><div class="s-label">${labels[i]}</div><div class="s-val">${v}</div><div class="s-sub">${subs[i]}</div></div>`).join('');
 }
 
 function sortBy(col) {
