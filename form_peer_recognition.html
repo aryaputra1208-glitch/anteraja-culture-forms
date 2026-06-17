@@ -57,30 +57,31 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
   <div class="card">
     <div class="section-label">Data Kamu (Pemberi Nominasi)</div>
     <div class="field"><label>Divisi <span class="req">*</span></label>
-      <select id="f3_div_p" onchange="onDivisiChange('f3_div_p','f3_dept_p','f3_nama_p','f3_nip_p')"></select></div>
+      <select id="f3_div_p" onchange="onDivisiChange('f3_div_p','f3_dept_p')"></select></div>
     <div class="field"><label>Departemen <span class="req">*</span></label>
-      <select id="f3_dept_p" disabled onchange="onDeptChange('f3_div_p','f3_dept_p','f3_nama_p','f3_nip_p')">
+      <select id="f3_dept_p" disabled onchange=""">
         <option value="">-- Pilih Divisi dulu --</option></select></div>
     <div class="field"><label>Namamu <span class="req">*</span></label>
-      <select id="f3_nama_p" disabled onchange="onNamaChange('f3_nama_p','f3_nip_p',null)">
-        <option value="">-- Pilih Departemen dulu --</option></select></div>
-    <div class="field"><label>NIP Kamu</label>
-      <input type="text" id="f3_nip_p" readonly placeholder="Otomatis terisi"></div>
+      <input type="text" id="f3_nama_p" placeholder="Ketik nama lengkapmu">
+      <div class="error-msg" id="err_f3_nama_p"></div></div>
+    <div class="field"><label>NIP Kamu <span class="req">*</span></label>
+      <input type="text" id="f3_nip_p" placeholder="Ketik NIP-mu">
+      <div class="error-msg" id="err_f3_nip_p"></div></div>
   </div>
   <div class="card">
     <div class="section-label">Karyawan yang Kamu Nominasikan</div>
     <div style="font-size:12px;color:#854F0B;background:#FAEEDA;padding:8px 12px;border-radius:8px;margin-bottom:16px">⚠️ Kamu hanya bisa menominasi rekan dari divisi yang sama denganmu.</div>
     <div class="field"><label>Divisi <span class="req">*</span></label>
-      <select id="f3_div_r" onchange="onDivisiChange('f3_div_r','f3_dept_r','f3_nama_r','f3_nip_r')"></select></div>
+      <select id="f3_div_r" onchange="onDivisiChange('f3_div_r','f3_dept_r')"></select></div>
     <div class="field"><label>Departemen <span class="req">*</span></label>
-      <select id="f3_dept_r" disabled onchange="onDeptChange('f3_div_r','f3_dept_r','f3_nama_r','f3_nip_r')">
+      <select id="f3_dept_r" disabled onchange=""">
         <option value="">-- Pilih Divisi dulu --</option></select></div>
     <div class="field"><label>Nama yang Dinominasi <span class="req">*</span></label>
-      <select id="f3_nama_r" disabled onchange="onNamaChange('f3_nama_r','f3_nip_r',null)">
-        <option value="">-- Pilih Departemen dulu --</option></select>
+      <input type="text" id="f3_nama_r" placeholder="Ketik nama lengkap yang dinominasi">
       <div class="error-msg" id="err_f3_nama_r"></div></div>
-    <div class="field"><label>NIP yang Dinominasi</label>
-      <input type="text" id="f3_nip_r" readonly placeholder="Otomatis terisi"></div>
+    <div class="field"><label>NIP yang Dinominasi <span class="req">*</span></label>
+      <input type="text" id="f3_nip_r" placeholder="Ketik NIP yang dinominasi">
+      <div class="error-msg" id="err_f3_nip_r"></div></div>
   </div>
   <div class="card">
     <div class="section-label">Detail Nominasi</div>
@@ -110,7 +111,7 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
   <button class="reset-btn" onclick="resetForm()">Isi lagi</button>
 </div>
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyTvx00TOXxPTX6rFJ9h3v2cxuIZipI7S_iFiSGagpfsQXkX8m6tYvpvsUI9WHz3AS-/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzgr8U9XrPltuvMa_JNMnkLKH0_Iwc_Dq1R3Ug5mk3YsEpRrr8pGBewt8DEqjp90c67/exec";
 let EMP = {};
 
 // Fetch employee data from Sheet on load
@@ -160,14 +161,12 @@ function populateDivisi(id) {
   });
 }
 
-function onDivisiChange(dv,dp,nm,nk) {
+function onDivisiChange(dv,dp) {
   const div = document.getElementById(dv).value;
-  const ds = document.getElementById(dp), ns = document.getElementById(nm), ne = document.getElementById(nk);
+  const ds = document.getElementById(dp);
   ds.innerHTML = '<option value="">-- Pilih Departemen --</option>'; ds.disabled = !div;
-  ns.innerHTML = '<option value="">-- Pilih Nama --</option>'; ns.disabled = true;
-  ne.value = ''; ne.classList.remove('autofill');
   if (!div) return;
-  Object.keys(EMP[div]).sort().forEach(d => {
+  (EMP[div]||[]).forEach(d => {
     const o = document.createElement('option'); o.value = d; o.textContent = d; ds.appendChild(o);
   });
 }
@@ -229,13 +228,21 @@ function onEMPReady(){
 
 async function handleSubmit(){
   clearErrors();let v=true;
-  const nipP=document.getElementById('f3_nip_p').value;
-  const nipR=document.getElementById('f3_nip_r').value;
-  if(!nipP){showError('err_f3_nama_r','Lengkapi data dirimu');v=false;}
-  if(!nipR){showError('err_f3_nama_r','Pilih karyawan yang dinominasi');v=false;}
+  const namaP=document.getElementById('f3_nama_p').value.trim();
+  const nipP=document.getElementById('f3_nip_p').value.trim();
+  const namaR=document.getElementById('f3_nama_r').value.trim();
+  const nipR=document.getElementById('f3_nip_r').value.trim();
+  const divP=document.getElementById('f3_div_p').value;
+  const divR=document.getElementById('f3_div_r').value;
+  if(!divP){showError('err_f3_nama_p','Pilih divisimu');v=false;}
+  if(!document.getElementById('f3_dept_p').value){showError('err_f3_nama_p','Pilih departemenmu');v=false;}
+  if(!namaP){showError('err_f3_nama_p','Isi namamu');v=false;}
+  if(!nipP){showError('err_f3_nip_p','Isi NIP-mu');v=false;}
+  if(!divR){showError('err_f3_nama_r','Pilih divisi yang dinominasi');v=false;}
+  if(!document.getElementById('f3_dept_r').value){showError('err_f3_nama_r','Pilih departemen yang dinominasi');v=false;}
+  if(!namaR){showError('err_f3_nama_r','Isi nama yang dinominasi');v=false;}
+  if(!nipR){showError('err_f3_nip_r','Isi NIP yang dinominasi');v=false;}
   if(nipP&&nipR&&nipP===nipR){showError('err_f3_nama_r','Tidak bisa menominasi diri sendiri');v=false;}
-  const divP = document.getElementById('f3_div_p').value;
-  const divR = document.getElementById('f3_div_r').value;
   if(divP&&divR&&divP!==divR){showError('err_f3_nama_r','Peer Recognition hanya bisa dalam divisi yang sama');v=false;}
   if(!document.getElementById('f3_tgl').value){showError('err_f3_tgl','Pilih tanggal');v=false;}
   if(!getRadio('f3_nilai')){showError('err_f3_nilai','Pilih nilai SATRIA');v=false;}
@@ -243,13 +250,11 @@ async function handleSubmit(){
   if(cerita.length<20){showError('err_f3_cerita','Keterangan minimal 20 karakter');v=false;}
   if(!v)return;
   const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='Mengirim...';
-  const nsP=document.getElementById('f3_nama_p'),optP=nsP.options[nsP.selectedIndex];
-  const nsR=document.getElementById('f3_nama_r'),optR=nsR.options[nsR.selectedIndex];
   try{
     await submitToSheet('PeerRecognition_Forms',{
       timestamp:new Date().toISOString(),tanggal:document.getElementById('f3_tgl').value,
-      nama_pemberi:optP.dataset.nama,nip_pemberi:nipP,
-      nama_penerima:optR.dataset.nama,nip_penerima:nipR,
+      nama_pemberi:namaP,nip_pemberi:nipP,
+      nama_penerima:namaR,nip_penerima:nipR,
       divisi_penerima:document.getElementById('f3_div_r').value,
       nilai:getRadio('f3_nilai'),keterangan:cerita
     });
@@ -263,8 +268,12 @@ function resetForm(){
   document.getElementById('successCard').style.display='none';
   document.getElementById('submitBtn').disabled=false;document.getElementById('submitBtn').textContent='Kirim';
   ['f3_div_p','f3_div_r'].forEach(id=>document.getElementById(id).value='');
-  onDivisiChange('f3_div_p','f3_dept_p','f3_nama_p','f3_nip_p');
-  onDivisiChange('f3_div_r','f3_dept_r','f3_nama_r','f3_nip_r');
+  document.getElementById('f3_dept_p').innerHTML='<option value="">-- Pilih Divisi dulu --</option>';
+  document.getElementById('f3_dept_p').disabled=true;
+  document.getElementById('f3_dept_r').innerHTML='<option value="">-- Pilih Divisi dulu --</option>';
+  document.getElementById('f3_dept_r').disabled=true;
+  document.getElementById('f3_nama_p').value='';document.getElementById('f3_nip_p').value='';
+  document.getElementById('f3_nama_r').value='';document.getElementById('f3_nip_r').value='';
   document.getElementById('f3_tgl').value='';document.getElementById('f3_cerita').value='';
   document.querySelectorAll('.radio-item').forEach(i=>i.classList.remove('selected'));
   document.querySelectorAll('input[type=radio]').forEach(i=>i.checked=false);
