@@ -80,9 +80,7 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
         <div class="radio-item" data-radio="f1_prog" onclick="selectRadio(this,'f1_prog');showAttBlock('clubaja')"><input type="radio" name="f1_prog" value="ClubAja"><span>ClubAja</span></div>
       </div>
       <div class="error-msg" id="err_f1_prog"></div></div>
-    <div class="field"><label>Nama Sesi / Nama Club <span class="req">*</span></label>
-      <input type="text" id="f1_sesi" placeholder="Contoh: Rabu Asik #12 / Club Badminton">
-      <div class="error-msg" id="err_f1_sesi"></div></div>
+
     <div class="conditional" id="att_block_rabuasik">
       <div class="field"><label>Sesi Rabu Asik <span class="req">*</span></label>
         <div class="radio-group">
@@ -249,7 +247,6 @@ async function handleSubmit(){
   if(!prog){showError('err_f1_prog','Pilih program');v=false;}
   if(prog==='Rabu Asik'&&!getRadio('f1_sesi')){showError('err_f1_sesi','Pilih sesi Rabu Asik');v=false;}
   if(prog==='ClubAja'&&!getRadio('f1_club')){showError('err_f1_club','Pilih club');v=false;}
-  if(!document.getElementById('f1_sesi').value.trim()){showError('err_f1_sesi','Isi nama sesi/club');v=false;}
   if(!getRadio('f1_peran')){showError('err_f1_peran','Pilih peranmu');v=false;}
   if(!v)return;
   const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='Mengirim...';
