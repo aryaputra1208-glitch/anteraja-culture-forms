@@ -108,7 +108,7 @@ tr:hover td{background:#FAFAF8}
 .page{display:none}.page.active{display:block}
 .empty{text-align:center;padding:32px;color:var(--text-s);font-size:13px}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/libs/pptxgen.bundle.js"></script>
+<script src="https://unpkg.com/pptxgenjs@3.12.0/libs/pptxgen.bundle.js"></script>
 </head>
 <body>
 
@@ -545,6 +545,20 @@ function switchTab(tab, el) {
 // ── PPT EXPORT ──────────────────────────────────────────────
 async function exportPPT() {
   if (!allScores.length) { alert('Load data dulu sebelum export PPT.'); return; }
+  if (typeof PptxGenJS === 'undefined') {
+    // Try loading dynamically if CDN was blocked
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/pptxgenjs@3.12.0/libs/pptxgen.bundle.js';
+      s.onload = resolve;
+      s.onerror = () => {
+        alert('Gagal load library PPT. Coba disable Tracking Prevention di browser untuk domain ini, atau gunakan browser lain.');
+        reject();
+      };
+      document.head.appendChild(s);
+    }).catch(() => { return; });
+    if (typeof PptxGenJS === 'undefined') return;
+  }
 
   const filtered = getFilteredScores();
   const bulan = document.getElementById('f_bulan').value || 'Semua Bulan';
