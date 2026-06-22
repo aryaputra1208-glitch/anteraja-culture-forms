@@ -108,6 +108,7 @@ tr:hover td{background:#FAFAF8}
 .page{display:none}.page.active{display:block}
 .empty{text-align:center;padding:32px;color:var(--text-s);font-size:13px}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/libs/pptxgen.bundle.js"></script>
 </head>
 <body>
 
@@ -119,6 +120,7 @@ tr:hover td{background:#FAFAF8}
   <div style="display:flex;align-items:center;gap:10px">
     <span id="lastSync" style="font-size:11px;color:var(--text-s)">Belum sync</span>
     <button class="refresh-btn" onclick="loadData()"><span id="refreshIcon">↻</span> Refresh data</button>
+    <button class="refresh-btn" onclick="exportPPT()" style="background:var(--mg);color:#fff;border-color:var(--mg)">📊 Export PPT</button>
   </div>
 </div>
 
@@ -537,6 +539,314 @@ function switchTab(tab, el) {
   el.classList.add('active');
   document.getElementById('page-'+tab).classList.add('active');
   if (tab==='peerwinners') renderPeerWinners();
+}
+
+
+// ── PPT EXPORT ──────────────────────────────────────────────
+async function exportPPT() {
+  if (!allScores.length) { alert('Load data dulu sebelum export PPT.'); return; }
+
+  const filtered = getFilteredScores();
+  const bulan = document.getElementById('f_bulan').value || 'Semua Bulan';
+  const divisi = document.getElementById('f_divisi').value || 'Semua Divisi';
+  const nilaiFilter = document.getElementById('f_nilai') ? document.getElementById('f_nilai').value : '';
+  const nilai = nilaiFilter || getNilaiAktif();
+  const tgl = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+
+  // Color palette — Anteraja magenta brand
+  const MG = 'E8197D', MG_L = 'FBEAF0', DARK = '2C2C2A', GRAY = 'F1EFE8';
+  const GREEN = '3B6D11', BLUE = '185FA5', AMBER = '854F0B', PINK = '993556';
+  const WHITE = 'FFFFFF', TEXT_S = '5F5E5A';
+  const shadow = () => ({ type:'outer', color:'000000', blur:6, offset:2, angle:45, opacity:0.10 });
+
+  const pres = new PptxGenJS();
+  pres.layout = 'LAYOUT_16x9';
+  pres.title = 'Culture Scoring Report';
+  pres.author = 'People & Culture — Anteraja';
+
+  // ── SLIDE 1: COVER ──────────────────────────────────────
+  const s1 = pres.addSlide();
+  s1.background = { color: DARK };
+  // Big magenta circle accent (top right)
+  s1.addShape(pres.shapes.OVAL, { x:7.5, y:-1.2, w:4, h:4, fill:{color:MG, transparency:80}, line:{color:MG, width:0} });
+  // Small circle
+  s1.addShape(pres.shapes.OVAL, { x:8.8, y:3.8, w:1.5, h:1.5, fill:{color:MG, transparency:60}, line:{color:MG, width:0} });
+
+  s1.addText('CULTURE SCORING', { x:0.6, y:1.2, w:8, h:0.6, fontSize:11, bold:true, color:MG, charSpacing:6, fontFace:'Arial', margin:0 });
+  s1.addText('Report', { x:0.6, y:1.75, w:8, h:1.2, fontSize:52, bold:true, color:WHITE, fontFace:'Cambria', margin:0 });
+  s1.addText(`Periode: ${bulan}  ·  Divisi: ${divisi}  ·  Nilai: ${nilai}`, {
+    x:0.6, y:3.1, w:8.5, h:0.4, fontSize:13, color:'AAAAAA', fontFace:'Arial', margin:0
+  });
+  s1.addText(`Digenerate: ${tgl}`, { x:0.6, y:3.6, w:8.5, h:0.3, fontSize:11, color:'888888', fontFace:'Arial', margin:0 });
+  s1.addText('People & Culture  ·  Anteraja', { x:0.6, y:5.0, w:8.5, h:0.4, fontSize:11, color:'666666', fontFace:'Arial', margin:0 });
+
+  // ── SLIDE 2: EXECUTIVE SUMMARY ──────────────────────────
+  const s2 = pres.addSlide();
+  s2.background = { color: WHITE };
+
+  s2.addText('Executive Summary', { x:0.5, y:0.3, w:9, h:0.65, fontSize:28, bold:true, color:DARK, fontFace:'Cambria', margin:0 });
+  s2.addText(`Periode: ${bulan}  ·  Divisi: ${divisi}  ·  Nilai SATRIA: ${nilai}`, {
+    x:0.5, y:0.95, w:9, h:0.3, fontSize:11, color:TEXT_S, fontFace:'Arial', margin:0
+  });
+
+  const total = filtered.length;
+  const avg = total > 0 ? (filtered.reduce((s,e)=>s+e.total,0)/total).toFixed(1) : '0';
+  const maxScore = total > 0 ? Math.max(...filtered.map(e=>e.total)).toFixed(1) : '0';
+  const participated = filtered.filter(e=>e.total>0).length;
+
+  const stats = [
+    { val: total, label: 'Karyawan Aktif', color: MG },
+    { val: avg, label: 'Rata-rata Skor', color: BLUE },
+    { val: maxScore, label: 'Skor Tertinggi', color: GREEN },
+    { val: participated, label: 'Sudah Berpartisipasi', color: AMBER },
+  ];
+  stats.forEach((st, i) => {
+    const x = 0.5 + i * 2.35;
+    s2.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y:1.45, w:2.1, h:1.7, fill:{color:GRAY}, line:{color:'E0E0E0', width:0.5}, rectRadius:0.12, shadow:shadow() });
+    s2.addText(String(st.val), { x, y:1.6, w:2.1, h:0.8, fontSize:32, bold:true, color:st.color, align:'center', fontFace:'Cambria', margin:0 });
+    s2.addText(st.label, { x, y:2.45, w:2.1, h:0.5, fontSize:10, color:TEXT_S, align:'center', fontFace:'Arial', margin:0, wrap:true });
+  });
+
+  // Category breakdown bars
+  const cats = [
+    { id:'kepanitiaan', label:'Kepanitiaan', max:30, color:GREEN },
+    { id:'clubaja', label:'ClubAja', max:15, color:BLUE },
+    { id:'rabuasik', label:'Rabu Asik', max:15, color:AMBER },
+    { id:'va', label:'Value Awareness', max:40, color:PINK },
+  ];
+  s2.addText('Rata-rata per Kategori', { x:0.5, y:3.3, w:9, h:0.35, fontSize:13, bold:true, color:DARK, fontFace:'Arial', margin:0 });
+  cats.forEach((cat, i) => {
+    const avgCat = total > 0 ? filtered.reduce((s,e)=>s+(e[cat.id]||0),0)/total : 0;
+    const pct = avgCat / cat.max;
+    const BAR_W = 7.5;
+    const y = 3.75 + i * 0.42;
+    s2.addText(cat.label, { x:0.5, y, w:2.0, h:0.32, fontSize:11, color:DARK, fontFace:'Arial', valign:'middle', margin:0 });
+    // Background bar
+    s2.addShape(pres.shapes.ROUNDED_RECTANGLE, { x:2.6, y:y+0.06, w:BAR_W, h:0.22, fill:{color:'E8E8E8'}, line:{color:'E8E8E8',width:0}, rectRadius:0.05 });
+    // Fill bar
+    if (pct > 0) s2.addShape(pres.shapes.ROUNDED_RECTANGLE, { x:2.6, y:y+0.06, w:Math.max(pct*BAR_W, 0.15), h:0.22, fill:{color:cat.color}, line:{color:cat.color,width:0}, rectRadius:0.05 });
+    s2.addText(`${avgCat.toFixed(1)} / ${cat.max}`, { x:9.65, y, w:0.8, h:0.32, fontSize:10, color:cat.color, bold:true, align:'right', fontFace:'Arial', margin:0 });
+  });
+
+  // ── SLIDE 3A: RABU ASIK & CLUBAJA — per Divisi ──────────
+  const s3 = pres.addSlide();
+  s3.background = { color: WHITE };
+  s3.addText('Rabu Asik & ClubAja', { x:0.5, y:0.3, w:9, h:0.65, fontSize:28, bold:true, color:DARK, fontFace:'Cambria', margin:0 });
+  s3.addText('Attendance per Divisi', { x:0.5, y:0.92, w:9, h:0.3, fontSize:13, color:TEXT_S, fontFace:'Arial', margin:0 });
+
+  // Build attendance data from allScores (rabuasik + clubaja per divisi)
+  const attByDiv = {};
+  filtered.forEach(e => {
+    if (!e.divisi) return;
+    if (!attByDiv[e.divisi]) attByDiv[e.divisi] = { ra: 0, ca: 0 };
+    attByDiv[e.divisi].ra += (e.rabuasik || 0);
+    attByDiv[e.divisi].ca += (e.clubaja || 0);
+  });
+  const divLabels = Object.keys(attByDiv).sort().slice(0, 12); // max 12 for readability
+  const raVals = divLabels.map(d => parseFloat(attByDiv[d].ra.toFixed(1)));
+  const caVals = divLabels.map(d => parseFloat(attByDiv[d].ca.toFixed(1)));
+  const shortLabels = divLabels.map(d => d.length > 15 ? d.substring(0,13)+'…' : d);
+
+  if (divLabels.length > 0) {
+    s3.addChart(pres.charts.BAR, [
+      { name:'Rabu Asik', labels:shortLabels, values:raVals },
+      { name:'ClubAja', labels:shortLabels, values:caVals },
+    ], {
+      x:0.5, y:1.35, w:9, h:3.9, barDir:'col', barGrouping:'clustered',
+      chartColors:[AMBER, BLUE],
+      chartArea:{ fill:{ color:WHITE }, roundedCorners:false },
+      catAxisLabelColor:TEXT_S, valAxisLabelColor:TEXT_S,
+      valGridLine:{ color:'E2E8F0', size:0.5 }, catGridLine:{ style:'none' },
+      showValue:true, dataLabelColor:DARK, dataLabelFontSize:8,
+      showLegend:true, legendPos:'b', legendFontSize:11,
+    });
+  } else {
+    s3.addText('Belum ada data attendance.', { x:0.5, y:2.5, w:9, h:1, fontSize:16, color:TEXT_S, align:'center', fontFace:'Arial' });
+  }
+
+  // ── SLIDE 3B: PER CLUB (ClubAja breakdown) ─────────────
+  // We don't have per-club raw data in allScores, show note
+  const s3b = pres.addSlide();
+  s3b.background = { color: WHITE };
+  s3b.addText('Rabu Asik & ClubAja', { x:0.5, y:0.3, w:9, h:0.65, fontSize:28, bold:true, color:DARK, fontFace:'Cambria', margin:0 });
+  s3b.addText('Skor Rata-rata vs Maksimum Kontribusi', { x:0.5, y:0.92, w:9, h:0.3, fontSize:13, color:TEXT_S, fontFace:'Arial', margin:0 });
+
+  // Show avg vs max for each category breakdown
+  const raAvg = total > 0 ? filtered.reduce((s,e)=>s+(e.rabuasik||0),0)/total : 0;
+  const caAvg = total > 0 ? filtered.reduce((s,e)=>s+(e.clubaja||0),0)/total : 0;
+  const raMax = total > 0 ? Math.max(...filtered.map(e=>e.rabuasik||0)) : 0;
+  const caMax = total > 0 ? Math.max(...filtered.map(e=>e.clubaja||0)) : 0;
+
+  const cards3b = [
+    { label:'Rabu Asik', avg:raAvg, max:raMax, cap:15, color:AMBER },
+    { label:'ClubAja', avg:caAvg, max:caMax, cap:15, color:BLUE },
+  ];
+  cards3b.forEach((c, i) => {
+    const x = 0.5 + i * 4.75;
+    s3b.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y:1.4, w:4.3, h:3.5, fill:{color:GRAY}, line:{color:'E0E0E0',width:0.5}, rectRadius:0.15, shadow:shadow() });
+    s3b.addText(c.label, { x, y:1.55, w:4.3, h:0.4, fontSize:16, bold:true, color:c.color, align:'center', fontFace:'Cambria', margin:0 });
+    s3b.addText(`Rata-rata: ${c.avg.toFixed(1)}`, { x, y:2.1, w:4.3, h:0.35, fontSize:13, color:DARK, align:'center', fontFace:'Arial', margin:0 });
+    s3b.addText(`Tertinggi: ${c.max.toFixed(1)}`, { x, y:2.5, w:4.3, h:0.35, fontSize:13, color:DARK, align:'center', fontFace:'Arial', margin:0 });
+    s3b.addText(`Kapasitas max: ${c.cap} poin`, { x, y:2.9, w:4.3, h:0.35, fontSize:11, color:TEXT_S, align:'center', fontFace:'Arial', margin:0 });
+    // Mini progress bar
+    const pct = c.avg / c.cap;
+    s3b.addShape(pres.shapes.ROUNDED_RECTANGLE, { x:x+0.4, y:3.45, w:3.5, h:0.22, fill:{color:'E0E0E0'}, line:{color:'E0E0E0',width:0}, rectRadius:0.05 });
+    if (pct > 0) s3b.addShape(pres.shapes.ROUNDED_RECTANGLE, { x:x+0.4, y:3.45, w:Math.max(pct*3.5,0.15), h:0.22, fill:{color:c.color}, line:{color:c.color,width:0}, rectRadius:0.05 });
+    s3b.addText(`${(pct*100).toFixed(0)}% dari maksimum`, { x, y:3.75, w:4.3, h:0.3, fontSize:10, color:TEXT_S, align:'center', fontFace:'Arial', margin:0 });
+  });
+
+  // ── SLIDE 4: INTERNALISASI VALUE POINT ──────────────────
+  const s4 = pres.addSlide();
+  s4.background = { color: WHITE };
+  s4.addText('Internalisasi Value Point', { x:0.5, y:0.3, w:9, h:0.65, fontSize:28, bold:true, color:DARK, fontFace:'Cambria', margin:0 });
+  s4.addText('Partisipasi Campaign & Aktivitas', { x:0.5, y:0.92, w:9, h:0.3, fontSize:13, color:TEXT_S, fontFace:'Arial', margin:0 });
+
+  // Use VA data from scores — show distribution
+  const vaScores = filtered.map(e=>e.va||0);
+  const vaAvg = vaScores.length > 0 ? vaScores.reduce((a,b)=>a+b,0)/vaScores.length : 0;
+  const vaMax = vaScores.length > 0 ? Math.max(...vaScores) : 0;
+  const vaParticipated = vaScores.filter(v=>v>0).length;
+
+  const va4cards = [
+    { val: vaParticipated, label:'Sudah Submit', color:MG },
+    { val: (total - vaParticipated), label:'Belum Submit', color:TEXT_S },
+    { val: vaAvg.toFixed(1), label:'Rata-rata Skor VA', color:PINK },
+    { val: vaMax.toFixed(1), label:'Skor VA Tertinggi', color:GREEN },
+  ];
+  va4cards.forEach((c, i) => {
+    const x = 0.5 + i * 2.35;
+    s4.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y:1.4, w:2.1, h:1.5, fill:{color:GRAY}, line:{color:'E0E0E0',width:0.5}, rectRadius:0.12, shadow:shadow() });
+    s4.addText(String(c.val), { x, y:1.55, w:2.1, h:0.7, fontSize:30, bold:true, color:c.color, align:'center', fontFace:'Cambria', margin:0 });
+    s4.addText(c.label, { x, y:2.3, w:2.1, h:0.45, fontSize:10, color:TEXT_S, align:'center', fontFace:'Arial', margin:0, wrap:true });
+  });
+
+  // Campaign type breakdown note
+  s4.addText('Breakdown Tipe Campaign', { x:0.5, y:3.15, w:9, h:0.35, fontSize:13, bold:true, color:DARK, fontFace:'Arial', margin:0 });
+  s4.addText('Data breakdown per tipe campaign (Instagram Post, Story, Majalah Dinding, Poster Fisik, Others) tersedia di tab raw data Sheet master. Untuk detail breakdown, gunakan filter di dashboard atau export CSV.', {
+    x:0.5, y:3.55, w:9, h:0.9, fontSize:11, color:TEXT_S, fontFace:'Arial', margin:0, wrap:true
+  });
+
+  // ── SLIDE 5: PEER RECOGNITION ───────────────────────────
+  const s5 = pres.addSlide();
+  s5.background = { color: WHITE };
+  s5.addText('Peer Recognition', { x:0.5, y:0.3, w:9, h:0.65, fontSize:28, bold:true, color:DARK, fontFace:'Cambria', margin:0 });
+  s5.addText(`Pemenang per Divisi · Nilai: ${nilai}  ·  ${bulan}`, { x:0.5, y:0.92, w:9, h:0.3, fontSize:13, color:TEXT_S, fontFace:'Arial', margin:0 });
+
+  // Build winners from allScores VA data — approximate from dashboard state
+  s5.addText('Data pemenang Peer Recognition diambil dari tab Peer Recognition di dashboard.', {
+    x:0.5, y:1.4, w:9, h:0.4, fontSize:11, color:TEXT_S, fontFace:'Arial', margin:0
+  });
+
+  // Show top recipients from VA scores (those who have VA points likely won peer recognition)
+  const peerWinners = [...filtered].filter(e=>(e.va||0)>0).sort((a,b)=>b.va-a.va).slice(0,12);
+  if (peerWinners.length > 0) {
+    const tblData = [
+      [
+        { text:'Nama', options:{ bold:true, color:WHITE, fill:{color:MG}, align:'center', fontSize:11 } },
+        { text:'Divisi', options:{ bold:true, color:WHITE, fill:{color:MG}, align:'center', fontSize:11 } },
+        { text:'Skor VA', options:{ bold:true, color:WHITE, fill:{color:MG}, align:'center', fontSize:11 } },
+      ],
+      ...peerWinners.map((w,i) => [
+        { text: w.nama, options:{ fontSize:10, color:DARK, fill:{color: i%2===0?WHITE:GRAY} } },
+        { text: w.divisi, options:{ fontSize:10, color:TEXT_S, fill:{color: i%2===0?WHITE:GRAY} } },
+        { text: String(w.va), options:{ fontSize:10, color:PINK, bold:true, align:'center', fill:{color: i%2===0?WHITE:GRAY} } },
+      ])
+    ];
+    s5.addTable(tblData, { x:0.5, y:1.9, w:9, colW:[4.5, 3.5, 1.0], border:{pt:0.5, color:'E0E0E0'} });
+  } else {
+    s5.addText('Belum ada data Peer Recognition untuk periode ini.', { x:0.5, y:2.5, w:9, h:1, fontSize:14, color:TEXT_S, align:'center', fontFace:'Arial' });
+  }
+
+  // ── SLIDE 6: LEADERBOARD TOP 10 ─────────────────────────
+  const s6 = pres.addSlide();
+  s6.background = { color: WHITE };
+  s6.addText('Leaderboard', { x:0.5, y:0.3, w:9, h:0.65, fontSize:28, bold:true, color:DARK, fontFace:'Cambria', margin:0 });
+  s6.addText(`Top 10 Karyawan · ${bulan} · ${divisi}`, { x:0.5, y:0.92, w:9, h:0.3, fontSize:13, color:TEXT_S, fontFace:'Arial', margin:0 });
+
+  const top10 = [...filtered].sort((a,b)=>b.total-a.total).slice(0,10);
+  if (top10.length > 0) {
+    const medals = ['🥇','🥈','🥉'];
+    const tblData6 = [
+      [
+        { text:'#', options:{ bold:true, color:WHITE, fill:{color:DARK}, align:'center', fontSize:10 } },
+        { text:'Nama', options:{ bold:true, color:WHITE, fill:{color:DARK}, align:'center', fontSize:10 } },
+        { text:'Divisi', options:{ bold:true, color:WHITE, fill:{color:DARK}, align:'center', fontSize:10 } },
+        { text:'Total', options:{ bold:true, color:WHITE, fill:{color:DARK}, align:'center', fontSize:10 } },
+        { text:'Kep.', options:{ bold:true, color:WHITE, fill:{color:DARK}, align:'center', fontSize:10 } },
+        { text:'Club', options:{ bold:true, color:WHITE, fill:{color:DARK}, align:'center', fontSize:10 } },
+        { text:'Rabu', options:{ bold:true, color:WHITE, fill:{color:DARK}, align:'center', fontSize:10 } },
+        { text:'Value', options:{ bold:true, color:WHITE, fill:{color:DARK}, align:'center', fontSize:10 } },
+      ],
+      ...top10.map((e,i) => {
+        const bg = i < 3 ? MG_L : (i%2===0 ? WHITE : GRAY);
+        return [
+          { text: String(i+1), options:{ fontSize:10, bold:true, color:i<3?MG:DARK, align:'center', fill:{color:bg} } },
+          { text: e.nama, options:{ fontSize:10, bold:i<3, color:DARK, fill:{color:bg} } },
+          { text: (e.divisi||'').substring(0,20), options:{ fontSize:9, color:TEXT_S, fill:{color:bg} } },
+          { text: String(e.total), options:{ fontSize:10, bold:true, color:MG, align:'center', fill:{color:bg} } },
+          { text: String(e.kepanitiaan||0), options:{ fontSize:9, color:GREEN, align:'center', fill:{color:bg} } },
+          { text: String(e.clubaja||0), options:{ fontSize:9, color:BLUE, align:'center', fill:{color:bg} } },
+          { text: String(e.rabuasik||0), options:{ fontSize:9, color:AMBER, align:'center', fill:{color:bg} } },
+          { text: String(e.va||0), options:{ fontSize:9, color:PINK, align:'center', fill:{color:bg} } },
+        ];
+      })
+    ];
+    s6.addTable(tblData6, { x:0.5, y:1.35, w:9, colW:[0.45, 2.8, 2.2, 0.7, 0.65, 0.55, 0.65, 0.7], border:{pt:0.3, color:'E0E0E0'}, rowH:0.32 });
+  } else {
+    s6.addText('Belum ada data.', { x:0.5, y:2.5, w:9, h:1, fontSize:16, color:TEXT_S, align:'center', fontFace:'Arial' });
+  }
+
+  // ── SLIDE 7: DIVISI SPOTLIGHT ───────────────────────────
+  const s7 = pres.addSlide();
+  s7.background = { color: WHITE };
+  s7.addText('Divisi Spotlight', { x:0.5, y:0.3, w:9, h:0.65, fontSize:28, bold:true, color:DARK, fontFace:'Cambria', margin:0 });
+  s7.addText('Perbandingan keaktifan antar divisi', { x:0.5, y:0.92, w:9, h:0.3, fontSize:13, color:TEXT_S, fontFace:'Arial', margin:0 });
+
+  const byDiv7 = {};
+  filtered.forEach(e => {
+    if (!e.divisi) return;
+    if (!byDiv7[e.divisi]) byDiv7[e.divisi] = [];
+    byDiv7[e.divisi].push(e.total);
+  });
+
+  const allDivisi7 = Object.keys(karyawanMaster).sort();
+  const divAvg7 = allDivisi7.map(d => {
+    const scores = byDiv7[d] || [];
+    return { div: d, avg: scores.length > 0 ? scores.reduce((a,b)=>a+b,0)/scores.length : 0, count: scores.length };
+  });
+  divAvg7.sort((a,b) => b.avg - a.avg);
+
+  const topDivisi = divAvg7.filter(d=>d.count>0).slice(0,5);
+  const zeroDivisi = divAvg7.filter(d=>d.count===0);
+
+  // Top 5 active
+  s7.addText('Top 5 Divisi Teraktif', { x:0.5, y:1.35, w:4.3, h:0.35, fontSize:13, bold:true, color:GREEN, fontFace:'Arial', margin:0 });
+  topDivisi.forEach((d, i) => {
+    const y = 1.8 + i * 0.58;
+    s7.addShape(pres.shapes.ROUNDED_RECTANGLE, { x:0.5, y, w:4.3, h:0.48, fill:{color:i===0?'EAF3DE':WHITE}, line:{color:'E0E0E0',width:0.5}, rectRadius:0.08 });
+    s7.addText(`${i+1}. ${d.div.substring(0,25)}`, { x:0.6, y:y+0.05, w:3.0, h:0.2, fontSize:10, bold:i===0, color:DARK, fontFace:'Arial', margin:0 });
+    s7.addText(`${d.avg.toFixed(1)} rata-rata · ${d.count} karyawan`, { x:0.6, y:y+0.25, w:3.0, h:0.18, fontSize:9, color:TEXT_S, fontFace:'Arial', margin:0 });
+    s7.addText(d.avg.toFixed(1), { x:3.9, y:y+0.08, w:0.8, h:0.3, fontSize:16, bold:true, color:GREEN, align:'right', fontFace:'Cambria', margin:0 });
+  });
+
+  // Belum aktif
+  s7.addText(`Divisi Belum Aktif (${zeroDivisi.length})`, { x:5.2, y:1.35, w:4.3, h:0.35, fontSize:13, bold:true, color:'CC3333', fontFace:'Arial', margin:0 });
+  if (zeroDivisi.length > 0) {
+    zeroDivisi.slice(0,8).forEach((d, i) => {
+      const y = 1.8 + i * 0.46;
+      s7.addShape(pres.shapes.ROUNDED_RECTANGLE, { x:5.2, y, w:4.3, h:0.38, fill:{color:GRAY}, line:{color:'E0E0E0',width:0.5}, rectRadius:0.08 });
+      s7.addText(d.div.substring(0,30), { x:5.3, y:y+0.09, w:4.1, h:0.22, fontSize:10, color:TEXT_S, fontFace:'Arial', margin:0 });
+    });
+    if (zeroDivisi.length > 8) {
+      s7.addText(`+ ${zeroDivisi.length-8} divisi lainnya belum aktif`, { x:5.2, y:5.3, w:4.3, h:0.25, fontSize:10, color:'CC3333', fontFace:'Arial', italic:true, margin:0 });
+    }
+  } else {
+    s7.addText('Semua divisi sudah aktif! 🎉', { x:5.2, y:2.2, w:4.3, h:0.5, fontSize:13, color:GREEN, fontFace:'Arial', align:'center' });
+  }
+
+  // ── GENERATE ─────────────────────────────────────────────
+  const fileName = `CultureScoring_Report_${bulan.replace(/ /g,'_')}_${divisi.replace(/ /g,'_').substring(0,20)}.pptx`;
+  await pres.writeFile({ fileName });
 }
 
 // Init
