@@ -84,8 +84,6 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
     <div class="field"><label>Tipe Aktivitas <span class="req">*</span></label>
       <div class="radio-group">
         <div class="radio-item" data-radio="f2_tipe" onclick="selectRadio(this,'f2_tipe');showBlock('campaign')"><input type="radio" name="f2_tipe" value="Campaign"><span>Campaign</span></div>
-        <div class="radio-item" data-radio="f2_tipe" onclick="selectRadio(this,'f2_tipe');showBlock('rabuasik')"><input type="radio" name="f2_tipe" value="Rabu Asik"><span>Rabu Asik</span></div>
-        <div class="radio-item" data-radio="f2_tipe" onclick="selectRadio(this,'f2_tipe');showBlock('clubaja')"><input type="radio" name="f2_tipe" value="ClubAja"><span>ClubAja</span></div>
         <div class="radio-item" data-radio="f2_tipe" onclick="selectRadio(this,'f2_tipe');showBlock('activity')"><input type="radio" name="f2_tipe" value="Activity / Games"><span>Activity / Games</span></div>
       </div>
       <div class="error-msg" id="err_f2_tipe"></div></div>
@@ -107,28 +105,7 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
       </div>
     </div>
 
-    <div class="conditional" id="block_rabuasik">
-      <div class="field"><label>Sesi Rabu Asik <span class="req">*</span></label>
-        <div class="radio-group">
-          <div class="radio-item" data-radio="f2_sesi_ra" onclick="selectRadio(this,'f2_sesi_ra')"><input type="radio" name="f2_sesi_ra" value="Information & Communication & Sharing Session"><span>Information & Communication & Sharing Session</span></div>
-        </div>
-        <div class="error-msg" id="err_f2_sesi_ra"></div></div>
-    </div>
 
-    <div class="conditional" id="block_clubaja">
-      <div class="field"><label>Club <span class="req">*</span></label>
-        <div class="radio-group">
-          <div class="radio-item" data-radio="f2_club" onclick="selectRadio(this,'f2_club')"><input type="radio" name="f2_club" value="Padel"><span>Padel</span></div>
-          <div class="radio-item" data-radio="f2_club" onclick="selectRadio(this,'f2_club')"><input type="radio" name="f2_club" value="Mini Soccer / Futsal"><span>Mini Soccer / Futsal</span></div>
-          <div class="radio-item" data-radio="f2_club" onclick="selectRadio(this,'f2_club')"><input type="radio" name="f2_club" value="Badminton"><span>Badminton</span></div>
-          <div class="radio-item" data-radio="f2_club" onclick="selectRadio(this,'f2_club')"><input type="radio" name="f2_club" value="Yoga"><span>Yoga</span></div>
-          <div class="radio-item" data-radio="f2_club" onclick="selectRadio(this,'f2_club')"><input type="radio" name="f2_club" value="Mini4WD"><span>Mini4WD</span></div>
-          <div class="radio-item" data-radio="f2_club" onclick="selectRadio(this,'f2_club')"><input type="radio" name="f2_club" value="Book Club"><span>Book Club</span></div>
-          <div class="radio-item" data-radio="f2_club" onclick="selectRadio(this,'f2_club')"><input type="radio" name="f2_club" value="Music"><span>Music</span></div>
-          <div class="radio-item" data-radio="f2_club" onclick="selectRadio(this,'f2_club')"><input type="radio" name="f2_club" value="Running Club"><span>Running Club</span></div>
-        </div>
-        <div class="error-msg" id="err_f2_club"></div></div>
-    </div>
 
     <div class="conditional" id="block_activity">
       <div class="field"><label>Deskripsi Activity / Games <span class="req">*</span></label>
@@ -258,7 +235,7 @@ async function submitToSheet(tab,data) {
 
 function onEMPReady(){populateDivisi('f2_div');}
 function showBlock(tipe){
-  ['campaign','rabuasik','clubaja','activity'].forEach(b=>{
+  ['campaign','activity'].forEach(b=>{
     const el=document.getElementById('block_'+b);
     if(el) el.style.display=tipe===b?'block':'none';
   });
@@ -298,8 +275,6 @@ async function handleSubmit(){
     if(!getRadio('f2_jenis')){showError('err_f2_jenis','Pilih jenis campaign');v=false;}
     if(getRadio('f2_jenis')==='Others'&&!document.getElementById('f2_others_text').value.trim()){showError('err_f2_others','Isi keterangan campaign');v=false;}
   }
-  if(tipe==='Rabu Asik'&&!getRadio('f2_sesi_ra')){showError('err_f2_sesi_ra','Pilih sesi Rabu Asik');v=false;}
-  if(tipe==='ClubAja'&&!getRadio('f2_club')){showError('err_f2_club','Pilih club');v=false;}
   if(tipe==='Activity / Games'&&!document.getElementById('f2_deskripsi').value.trim()){showError('err_f2_deskripsi','Isi deskripsi activity/games');v=false;}
   if(!document.getElementById('f2_house').value){showError('err_f2_house','Pilih house / nilai');v=false;}
   if(!v)return;
@@ -308,10 +283,6 @@ async function handleSubmit(){
   if(tipe==='Campaign'){
     const j=getRadio('f2_jenis');
     jenis_konten=j==='Others'?document.getElementById('f2_others_text').value.trim():j;
-  } else if(tipe==='Rabu Asik'){
-    jenis_konten=getRadio('f2_sesi_ra');
-  } else if(tipe==='ClubAja'){
-    jenis_konten=getRadio('f2_club');
   }
   const keterangan=tipe==='Activity / Games'?document.getElementById('f2_deskripsi').value.trim():'';
   try{
@@ -336,7 +307,7 @@ function resetForm(){
   document.getElementById('f2_dept').disabled=true;
   document.getElementById('f2_nama').value='';document.getElementById('f2_nip').value='';
   document.getElementById('f2_tgl').value='';document.getElementById('f2_house').value='';
-  ['campaign','rabuasik','clubaja','activity'].forEach(b=>{const el=document.getElementById('block_'+b);if(el)el.style.display='none';});
+  ['campaign','activity'].forEach(b=>{const el=document.getElementById('block_'+b);if(el)el.style.display='none';});
   const oth=document.getElementById('block_others');if(oth)oth.style.display='none';
   document.querySelectorAll('.radio-item').forEach(i=>i.classList.remove('selected'));
   document.querySelectorAll('input[type=radio]').forEach(i=>i.checked=false);
