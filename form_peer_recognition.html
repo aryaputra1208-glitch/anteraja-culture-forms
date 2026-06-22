@@ -65,7 +65,7 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
       <input type="text" id="f3_nama_p" placeholder="Ketik nama lengkapmu">
       <div class="error-msg" id="err_f3_nama_p"></div></div>
     <div class="field"><label>NIP Kamu <span class="req">*</span></label>
-      <input type="text" id="f3_nip_p" placeholder="Ketik NIP-mu">
+      <input type="text" id="f3_nip_p" placeholder="Ketik NIP-mu (8 digit)" maxlength="8" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
       <div class="error-msg" id="err_f3_nip_p"></div></div>
   </div>
   <div class="card">
@@ -80,7 +80,7 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
       <input type="text" id="f3_nama_r" placeholder="Ketik nama lengkap yang dinominasi">
       <div class="error-msg" id="err_f3_nama_r"></div></div>
     <div class="field"><label>NIP yang Dinominasi <span class="req">*</span></label>
-      <input type="text" id="f3_nip_r" placeholder="Ketik NIP yang dinominasi">
+      <input type="text" id="f3_nip_r" placeholder="Ketik NIP yang dinominasi (8 digit)" maxlength="8" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
       <div class="error-msg" id="err_f3_nip_r"></div></div>
   </div>
   <div class="card">
