@@ -76,13 +76,35 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
       <div class="error-msg" id="err_f1_tgl"></div></div>
     <div class="field"><label>Program <span class="req">*</span></label>
       <div class="radio-group">
-        <div class="radio-item" data-radio="f1_prog" onclick="selectRadio(this,'f1_prog')"><input type="radio" name="f1_prog" value="Rabu Asik"><span>Rabu Asik</span></div>
-        <div class="radio-item" data-radio="f1_prog" onclick="selectRadio(this,'f1_prog')"><input type="radio" name="f1_prog" value="ClubAja"><span>ClubAja</span></div>
+        <div class="radio-item" data-radio="f1_prog" onclick="selectRadio(this,'f1_prog');showAttBlock('rabuasik')"><input type="radio" name="f1_prog" value="Rabu Asik"><span>Rabu Asik</span></div>
+        <div class="radio-item" data-radio="f1_prog" onclick="selectRadio(this,'f1_prog');showAttBlock('clubaja')"><input type="radio" name="f1_prog" value="ClubAja"><span>ClubAja</span></div>
       </div>
       <div class="error-msg" id="err_f1_prog"></div></div>
     <div class="field"><label>Nama Sesi / Nama Club <span class="req">*</span></label>
       <input type="text" id="f1_sesi" placeholder="Contoh: Rabu Asik #12 / Club Badminton">
       <div class="error-msg" id="err_f1_sesi"></div></div>
+    <div class="conditional" id="att_block_rabuasik">
+      <div class="field"><label>Sesi Rabu Asik <span class="req">*</span></label>
+        <div class="radio-group">
+          <div class="radio-item" data-radio="f1_sesi" onclick="selectRadio(this,'f1_sesi')"><input type="radio" name="f1_sesi" value="Information & Communication"><span>Information & Communication</span></div>
+          <div class="radio-item" data-radio="f1_sesi" onclick="selectRadio(this,'f1_sesi')"><input type="radio" name="f1_sesi" value="Sharing Session"><span>Sharing Session</span></div>
+        </div>
+        <div class="error-msg" id="err_f1_sesi"></div></div>
+    </div>
+    <div class="conditional" id="att_block_clubaja">
+      <div class="field"><label>Club <span class="req">*</span></label>
+        <div class="radio-group">
+          <div class="radio-item" data-radio="f1_club" onclick="selectRadio(this,'f1_club')"><input type="radio" name="f1_club" value="Padel"><span>Padel</span></div>
+          <div class="radio-item" data-radio="f1_club" onclick="selectRadio(this,'f1_club')"><input type="radio" name="f1_club" value="Mini Soccer / Futsal"><span>Mini Soccer / Futsal</span></div>
+          <div class="radio-item" data-radio="f1_club" onclick="selectRadio(this,'f1_club')"><input type="radio" name="f1_club" value="Badminton"><span>Badminton</span></div>
+          <div class="radio-item" data-radio="f1_club" onclick="selectRadio(this,'f1_club')"><input type="radio" name="f1_club" value="Yoga"><span>Yoga</span></div>
+          <div class="radio-item" data-radio="f1_club" onclick="selectRadio(this,'f1_club')"><input type="radio" name="f1_club" value="Mini4WD"><span>Mini4WD</span></div>
+          <div class="radio-item" data-radio="f1_club" onclick="selectRadio(this,'f1_club')"><input type="radio" name="f1_club" value="Book Club"><span>Book Club</span></div>
+          <div class="radio-item" data-radio="f1_club" onclick="selectRadio(this,'f1_club')"><input type="radio" name="f1_club" value="Music"><span>Music</span></div>
+          <div class="radio-item" data-radio="f1_club" onclick="selectRadio(this,'f1_club')"><input type="radio" name="f1_club" value="Running Club"><span>Running Club</span></div>
+        </div>
+        <div class="error-msg" id="err_f1_club"></div></div>
+    </div>
     <div class="field"><label>Peranmu <span class="req">*</span></label>
       <div class="radio-group">
         <div class="radio-item" data-radio="f1_peran" onclick="selectRadio(this,'f1_peran')"><input type="radio" name="f1_peran" value="Panitia"><span>Panitia</span></div>
@@ -208,6 +230,12 @@ async function submitToSheet(tab,data) {
   return {status:'ok'};
 }
 
+function showAttBlock(tipe){
+  document.getElementById('att_block_rabuasik').style.display=tipe==='rabuasik'?'block':'none';
+  document.getElementById('att_block_clubaja').style.display=tipe==='clubaja'?'block':'none';
+  if(tipe!=='rabuasik'){document.querySelectorAll('[data-radio="f1_sesi"]').forEach(i=>i.classList.remove('selected'));document.querySelectorAll('input[name="f1_sesi"]').forEach(i=>i.checked=false);}
+  if(tipe!=='clubaja'){document.querySelectorAll('[data-radio="f1_club"]').forEach(i=>i.classList.remove('selected'));document.querySelectorAll('input[name="f1_club"]').forEach(i=>i.checked=false);}
+}
 function onEMPReady(){populateDivisi('f1_div');}
 
 async function handleSubmit(){
@@ -217,7 +245,10 @@ async function handleSubmit(){
   if(!document.getElementById('f1_nama').value.trim()){showError('err_f1_nama','Isi nama karyawan');v=false;}
   if(!document.getElementById('f1_nip').value.trim()){showError('err_f1_nip','Isi NIP');v=false;}
   if(!document.getElementById('f1_tgl').value){showError('err_f1_tgl','Pilih tanggal');v=false;}
-  if(!getRadio('f1_prog')){showError('err_f1_prog','Pilih program');v=false;}
+  const prog=getRadio('f1_prog');
+  if(!prog){showError('err_f1_prog','Pilih program');v=false;}
+  if(prog==='Rabu Asik'&&!getRadio('f1_sesi')){showError('err_f1_sesi','Pilih sesi Rabu Asik');v=false;}
+  if(prog==='ClubAja'&&!getRadio('f1_club')){showError('err_f1_club','Pilih club');v=false;}
   if(!document.getElementById('f1_sesi').value.trim()){showError('err_f1_sesi','Isi nama sesi/club');v=false;}
   if(!getRadio('f1_peran')){showError('err_f1_peran','Pilih peranmu');v=false;}
   if(!v)return;
@@ -243,7 +274,9 @@ function resetForm(){
   document.getElementById('f1_dept').innerHTML='<option value="">-- Pilih Divisi dulu --</option>';
   document.getElementById('f1_dept').disabled=true;
   document.getElementById('f1_nama').value='';document.getElementById('f1_nip').value='';
-  document.getElementById('f1_tgl').value='';document.getElementById('f1_sesi').value='';
+  document.getElementById('f1_tgl').value='';
+  document.getElementById('att_block_rabuasik').style.display='none';
+  document.getElementById('att_block_clubaja').style.display='none';
   document.querySelectorAll('.radio-item').forEach(i=>i.classList.remove('selected'));
   document.querySelectorAll('input[type=radio]').forEach(i=>i.checked=false);
 }
