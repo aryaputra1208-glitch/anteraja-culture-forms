@@ -373,8 +373,13 @@ function getNilaiAktif() {
 
 function updateNilaiBadge() {
   const nilaiFilter = document.getElementById('f_nilai') ? document.getElementById('f_nilai').value : '';
-  const nilai = nilaiFilter || getNilaiAktif();
-  document.getElementById('nilaiAktif').textContent = 'Nilai: ' + nilai;
+  const badge = document.getElementById('nilaiAktif');
+  if (!nilaiFilter) {
+    badge.style.display = 'none';
+  } else {
+    badge.style.display = 'inline-block';
+    badge.textContent = 'Nilai: ' + nilaiFilter;
+  }
 }
 
 // Load all data from Apps Script
@@ -950,6 +955,7 @@ async function exportPPT() {
 
 // Init
 updateNilaiBadge();
+document.getElementById('nilaiAktif').style.display='none';
 </script>
 </body>
 </html>
