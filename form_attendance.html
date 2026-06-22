@@ -65,7 +65,7 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
       <input type="text" id="f1_nama" placeholder="Ketik nama lengkap">
       <div class="error-msg" id="err_f1_nama"></div></div>
     <div class="field"><label>NIP <span class="req">*</span></label>
-      <input type="text" id="f1_nip" placeholder="Ketik NIP">
+      <input type="text" id="f1_nip" placeholder="Ketik NIP (8 digit)" maxlength="8" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
       <div class="error-msg" id="err_f1_nip"></div></div>
     <input type="hidden" id="f1_lvl">
   </div>
