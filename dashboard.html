@@ -461,16 +461,21 @@ function renderBreakdown(filtered) {
     if (!byDiv[e.divisi]) byDiv[e.divisi] = [];
     byDiv[e.divisi].push(e);
   });
-  const rows = Object.entries(byDiv).sort((a,b)=>a[0].localeCompare(b[0])).map(([div,emps]) => {
-    const avg = f => (emps.reduce((s,e)=>s+(e[f]||0),0)/emps.length).toFixed(1);
-    return `<tr>
-      <td style="font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis">${div}</td>
+  // Show ALL divisi from master, including those with 0 activity
+  const allDivisi = Object.keys(karyawanMaster).sort();
+  const rows = allDivisi.map(div => {
+    const emps = byDiv[div] || [];
+    const avg = f => emps.length > 0 ? (emps.reduce((s,e)=>s+(e[f]||0),0)/emps.length).toFixed(1) : '—';
+    const isEmpty = emps.length === 0;
+    const rowStyle = isEmpty ? 'color:var(--text-s)' : '';
+    return `<tr style="${rowStyle}">
+      <td style="font-weight:${isEmpty?'400':'500'};max-width:200px;overflow:hidden;text-overflow:ellipsis">${div}${isEmpty?' <span style="font-size:10px;color:#CCC">(belum ada aktivitas)</span>':''}</td>
       <td style="text-align:center">${emps.length}</td>
-      <td style="text-align:center;font-weight:600">${avg('total')}</td>
-      <td style="text-align:center;color:var(--green)">${avg('kepanitiaan')}</td>
-      <td style="text-align:center;color:var(--blue)">${avg('clubaja')}</td>
-      <td style="text-align:center;color:var(--amber)">${avg('rabuasik')}</td>
-      <td style="text-align:center;color:var(--pink)">${avg('va')}</td>
+      <td style="text-align:center;font-weight:600;color:${isEmpty?'#CCC':'var(--text)'}">${avg('total')}</td>
+      <td style="text-align:center;color:${isEmpty?'#CCC':'var(--green)'}">${avg('kepanitiaan')}</td>
+      <td style="text-align:center;color:${isEmpty?'#CCC':'var(--blue)'}">${avg('clubaja')}</td>
+      <td style="text-align:center;color:${isEmpty?'#CCC':'var(--amber)'}">${avg('rabuasik')}</td>
+      <td style="text-align:center;color:${isEmpty?'#CCC':'var(--pink)'}">${avg('va')}</td>
     </tr>`;
   }).join('');
   document.getElementById('divisiBody').innerHTML = rows || '<tr><td colspan="7" class="empty">Tidak ada data</td></tr>';
