@@ -276,7 +276,6 @@ async function handleSubmit(){
   const namaP=document.getElementById('f3_nama_p').value.trim();
   const nipP=document.getElementById('f3_nip_p').value.trim();
   const namaR=document.getElementById('f3_nama_r').value.trim();
-  const nipR=document.getElementById('f3_nip_r').value.trim();
   const divP=document.getElementById('f3_div_p').value;
   const divR=document.getElementById('f3_div_r').value;
   if(!divP){showError('err_f3_nama_p','Pilih divisimu');v=false;}
@@ -286,10 +285,8 @@ async function handleSubmit(){
   if(!divR){showError('err_f3_nama_r','Pilih divisi yang dinominasi');v=false;}
   if(!document.getElementById('f3_dept_r').value){showError('err_f3_nama_r','Pilih departemen yang dinominasi');v=false;}
   if(!namaR){showError('err_f3_nama_r','Isi nama yang dinominasi');v=false;}
-  if(!nipR){showError('err_f3_nip_r','Isi NIP yang dinominasi');v=false;}
   if(nipP&&nipR&&nipP===nipR){showError('err_f3_nama_r','Tidak bisa menominasi diri sendiri');v=false;}
   if(divP&&divR&&divP!==divR){showError('err_f3_nama_r','Peer Recognition hanya bisa dalam divisi yang sama');v=false;}
-  if(!document.getElementById('f3_tgl').value){showError('err_f3_tgl','Pilih tanggal');v=false;}
   if(!getRadio('f3_nilai')){showError('err_f3_nilai','Pilih nilai SATRIA');v=false;}
   const cerita=document.getElementById('f3_cerita').value.trim();
   if(cerita.length<20){showError('err_f3_cerita','Keterangan minimal 20 karakter');v=false;}
@@ -297,7 +294,7 @@ async function handleSubmit(){
   const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='Mengirim...';
   try{
     await submitToSheet('PeerRecognition_Forms',{
-      timestamp:new Date().toISOString(),tanggal:document.getElementById('f3_tgl').value,
+      timestamp:new Date().toISOString(),tanggal:new Date().toISOString(),
       nama_pemberi:namaP,nip_pemberi:nipP,
       nama_penerima:namaR,nip_penerima:nipR,
       divisi_penerima:document.getElementById('f3_div_r').value,
