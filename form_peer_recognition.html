@@ -40,6 +40,9 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
 .reset-btn{margin-top:16px;padding:10px 24px;background:transparent;border:1.5px solid #E8197D;color:#E8197D;border-radius:8px;font-size:13px;cursor:pointer;font-weight:500}
 .error-msg{font-size:12px;color:#D32F2F;margin-top:4px;display:none}
 .conditional{display:none}
+.nilai-def{display:none;margin-top:8px;padding:10px 14px;background:#FDF0F7;border-left:3px solid #E8197D;border-radius:0 8px 8px 0;font-size:12px;color:#5F5E5A;line-height:1.6;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.nilai-def .def-title{font-weight:600;color:#E8197D;font-size:13px;margin-bottom:3px}
 .error-banner{background:#FCEBEB;border:1.5px solid #F0BBBB;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:#A32D2D;display:none;max-width:600px;margin:0 auto 16px}
 </style>
 </head>
@@ -90,12 +93,54 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
       <div class="error-msg" id="err_f3_tgl"></div></div>
     <div class="field"><label>Nilai SATRIA yang direpresentasikan <span class="req">*</span></label>
       <div class="radio-group">
-        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai')"><input type="radio" name="f3_nilai" value="Sigap"><span>Sigap</span></div>
-        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai')"><input type="radio" name="f3_nilai" value="Aman"><span>Aman</span></div>
-        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai')"><input type="radio" name="f3_nilai" value="Terpercaya"><span>Terpercaya</span></div>
-        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai')"><input type="radio" name="f3_nilai" value="Ramah"><span>Ramah</span></div>
-        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai')"><input type="radio" name="f3_nilai" value="Integritas"><span>Integritas</span></div>
-        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai')"><input type="radio" name="f3_nilai" value="Amanah"><span>Amanah</span></div>
+        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai');showNilaiDef('Sigap')">
+          <input type="radio" name="f3_nilai" value="Sigap">
+          <span>Sigap</span>
+        </div>
+        <div class="nilai-def" id="def_Sigap">
+          <div class="def-title">Sigap</div>
+          Bertindak dengan cepat dan tepat tanpa mengabaikan kualitas
+        </div>
+        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai');showNilaiDef('Aman')">
+          <input type="radio" name="f3_nilai" value="Aman">
+          <span>Aman</span>
+        </div>
+        <div class="nilai-def" id="def_Aman">
+          <div class="def-title">Aman</div>
+          Bertindak sesuai dengan standar dan ketentuan yang berlaku demi kebaikan bersama
+        </div>
+        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai');showNilaiDef('Terpercaya')">
+          <input type="radio" name="f3_nilai" value="Terpercaya">
+          <span>Terpercaya</span>
+        </div>
+        <div class="nilai-def" id="def_Terpercaya">
+          <div class="def-title">Terpercaya</div>
+          Berkomitmen untuk selalu jujur dan konsisten serta memberi nilai lebih di setiap peran
+        </div>
+        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai');showNilaiDef('Ramah')">
+          <input type="radio" name="f3_nilai" value="Ramah">
+          <span>Ramah</span>
+        </div>
+        <div class="nilai-def" id="def_Ramah">
+          <div class="def-title">Ramah</div>
+          Bersikap rendah hati, saling menghargai, serta tulus di segala kondisi
+        </div>
+        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai');showNilaiDef('Integritas')">
+          <input type="radio" name="f3_nilai" value="Integritas">
+          <span>Integritas</span>
+        </div>
+        <div class="nilai-def" id="def_Integritas">
+          <div class="def-title">Integritas</div>
+          Bertindak dengan transparan dan sesuai dengan nilai
+        </div>
+        <div class="radio-item" data-radio="f3_nilai" onclick="selectRadio(this,'f3_nilai');showNilaiDef('Amanah')">
+          <input type="radio" name="f3_nilai" value="Amanah">
+          <span>Amanah</span>
+        </div>
+        <div class="nilai-def" id="def_Amanah">
+          <div class="def-title">Amanah</div>
+          Menjalankan setiap tanggung jawab dengan sepenuh hati
+        </div>
       </div>
       <div class="error-msg" id="err_f3_nilai"></div></div>
     <div class="field"><label>Ceritakan kenapa kamu menominasi dia <span class="req">*</span></label>
@@ -197,6 +242,14 @@ function selectRadio(el,name) {
   el.classList.add('selected'); el.querySelector('input').checked = true;
 }
 
+function showNilaiDef(nilai) {
+  // Hide all definitions first
+  document.querySelectorAll('.nilai-def').forEach(el => el.style.display = 'none');
+  // Show selected
+  const def = document.getElementById('def_' + nilai);
+  if (def) def.style.display = 'block';
+}
+
 function getRadio(name) {
   const el = document.querySelector('input[name="'+name+'"]:checked');
   return el ? el.value : '';
@@ -277,6 +330,7 @@ function resetForm(){
   document.getElementById('f3_tgl').value='';document.getElementById('f3_cerita').value='';
   document.querySelectorAll('.radio-item').forEach(i=>i.classList.remove('selected'));
   document.querySelectorAll('input[type=radio]').forEach(i=>i.checked=false);
+  document.querySelectorAll('.nilai-def').forEach(el=>el.style.display='none');
 }
 
 window.onload = function() {
