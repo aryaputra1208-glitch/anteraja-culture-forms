@@ -256,7 +256,7 @@ async function handleSubmit(){
       nama:document.getElementById('f1_nama').value.trim(),nip:document.getElementById('f1_nip').value.trim(),
       divisi:document.getElementById('f1_div').value,departemen:document.getElementById('f1_dept').value,
       level:'',program:getRadio('f1_prog'),
-      sesi:document.getElementById('f1_sesi').value.trim(),peran:getRadio('f1_peran')
+      sesi:getRadio('f1_prog')==='Rabu Asik'?getRadio('f1_sesi'):(getRadio('f1_prog')==='ClubAja'?getRadio('f1_club'):''),peran:getRadio('f1_peran')
     });
     document.getElementById('mainForm').style.display='none';
     document.getElementById('successCard').style.display='block';
