@@ -103,6 +103,9 @@ select:disabled{background:#F5F5F5;color:#888;cursor:not-allowed}
           <input type="text" id="f2_others_text" placeholder="Tuliskan jenis campaign...">
           <div class="error-msg" id="err_f2_others"></div></div>
       </div>
+      <div class="field"><label>Apa yang kamu pelajari dari konten tersebut? <span class="req">*</span></label>
+        <textarea id="f2_pelajaran" rows="3" placeholder="Tuliskan hal yang kamu pelajari..."></textarea>
+        <div class="error-msg" id="err_f2_pelajaran"></div></div>
     </div>
 
 
@@ -245,6 +248,7 @@ function showBlock(tipe){
     document.querySelectorAll('input[name="f2_jenis"]').forEach(i=>i.checked=false);
     const oth=document.getElementById('block_others');if(oth)oth.style.display='none';
     const ot=document.getElementById('f2_others_text');if(ot)ot.value='';
+    const pl=document.getElementById('f2_pelajaran');if(pl)pl.value='';
   }
   if(tipe!=='rabuasik'){
     document.querySelectorAll('[data-radio="f2_sesi_ra"]').forEach(i=>i.classList.remove('selected'));
@@ -274,6 +278,7 @@ async function handleSubmit(){
   if(tipe==='Campaign'){
     if(!getRadio('f2_jenis')){showError('err_f2_jenis','Pilih jenis campaign');v=false;}
     if(getRadio('f2_jenis')==='Others'&&!document.getElementById('f2_others_text').value.trim()){showError('err_f2_others','Isi keterangan campaign');v=false;}
+    if(!document.getElementById('f2_pelajaran').value.trim()){showError('err_f2_pelajaran','Isi apa yang kamu pelajari');v=false;}
   }
   if(tipe==='Activity / Games'&&!document.getElementById('f2_deskripsi').value.trim()){showError('err_f2_deskripsi','Isi deskripsi activity/games');v=false;}
   if(!document.getElementById('f2_house').value){showError('err_f2_house','Pilih house / nilai');v=false;}
@@ -284,7 +289,7 @@ async function handleSubmit(){
     const j=getRadio('f2_jenis');
     jenis_konten=j==='Others'?document.getElementById('f2_others_text').value.trim():j;
   }
-  const keterangan=tipe==='Activity / Games'?document.getElementById('f2_deskripsi').value.trim():'';
+  const keterangan=tipe==='Activity / Games'?document.getElementById('f2_deskripsi').value.trim():(tipe==='Campaign'?document.getElementById('f2_pelajaran').value.trim():'');
   try{
     await submitToSheet('ParticipationPoint_Forms',{
       timestamp:new Date().toISOString(),tanggal:document.getElementById('f2_tgl').value,
@@ -311,7 +316,7 @@ function resetForm(){
   const oth=document.getElementById('block_others');if(oth)oth.style.display='none';
   document.querySelectorAll('.radio-item').forEach(i=>i.classList.remove('selected'));
   document.querySelectorAll('input[type=radio]').forEach(i=>i.checked=false);
-  ['f2_deskripsi','f2_others_text'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f2_deskripsi','f2_others_text','f2_pelajaran'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 }
 
 window.onload = function() {
